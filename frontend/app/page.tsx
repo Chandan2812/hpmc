@@ -735,13 +735,16 @@ function Counter({ end, suffix = "" }: CounterProps) {
   return (
     <div ref={ref}>
       {inView ? (
-        <CountUp start={0} end={end} duration={2.5} separator=",">
-          {({ countUpRef }) => <span ref={countUpRef} />}
-        </CountUp>
+        <CountUp
+          start={0}
+          end={end}
+          duration={2.5}
+          separator=","
+          suffix={suffix}
+        />
       ) : (
-        0
+        `0${suffix}`
       )}
-      {suffix}
     </div>
   );
 }
