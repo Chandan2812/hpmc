@@ -1,10 +1,67 @@
+"use client";
 import Image from "next/image";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Link from "next/link";
 import CTA from "./components/CTA";
+import Clients from "./components/Client";
+import PopupForm from "./components/Popup";
+import { useEffect, useState } from "react";
+import FloatingContact from "./components/FloatingButton";
+import { Quote, Star } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import CountUp from "react-countup";
+import { useInView } from "react-intersection-observer";
+
+const testimonials = [
+  {
+    name: "John Smith",
+    company: "ABC Industries",
+    review:
+      "Their team delivered our project ahead of schedule with exceptional quality. Communication was seamless throughout the entire process.",
+  },
+  {
+    name: "Sarah Johnson",
+    company: "Global Manufacturing",
+    review:
+      "Professional, reliable, and highly skilled. We have worked together on multiple projects and the results have always exceeded expectations.",
+  },
+  {
+    name: "Michael Brown",
+    company: "Tech Solutions Ltd",
+    review:
+      "Outstanding service and technical expertise. Their attention to detail and commitment to quality truly set them apart.",
+  },
+  {
+    name: "Emma Wilson",
+    company: "Future Engineering",
+    review:
+      "The entire experience was fantastic. From planning to execution, everything was handled professionally and efficiently.",
+  },
+];
+
+interface CounterProps {
+  end: number;
+  suffix?: string;
+}
 
 export default function Home() {
+  const [openPopup, setOpenPopup] = useState(false);
+  const [openVideo, setOpenVideo] = useState(false);
+
+  useEffect(() => {
+    const alreadyShown = sessionStorage.getItem("popupShown");
+
+    if (alreadyShown) return;
+
+    const timer = setTimeout(() => {
+      setOpenPopup(true);
+      sessionStorage.setItem("popupShown", "true");
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <div>
       <Navbar />
@@ -25,7 +82,7 @@ export default function Home() {
           {/* CONTENT BOX */}
           <div className="max-w-[620px] w-full mt-16 sm:mt-20 md:mt-24 lg:mt-0">
             {/* SMALL TEXT */}
-            <p className="text-lime-500 font-semibold uppercase tracking-[2px] mb-2 text-[10px] sm:text-xs md:text-sm">
+            <p className="text-[#65BC4F] font-semibold uppercase tracking-[2px] mb-2 text-[10px] sm:text-xs md:text-sm">
               Extrusion Redefined
             </p>
 
@@ -35,7 +92,7 @@ export default function Home() {
               <br />
               Performance.
               <br />
-              <span className="text-lime-500">Possibilities.</span>
+              <span className="text-[#65BC4F]">Possibilities.</span>
             </h1>
 
             {/* DESCRIPTION */}
@@ -49,7 +106,7 @@ export default function Home() {
               {/* BUTTON 1 */}
               <Link href="/products">
                 {" "}
-                <button className="flex items-center justify-center gap-3 bg-lime-500 hover:bg-lime-600 transition px-5 py-2.5 rounded-lg group w-full sm:w-auto">
+                <button className="flex items-center justify-center gap-3 bg-[#65BC4F] hover:bg-lime-600 transition px-5 py-2.5 rounded-lg group w-full sm:w-auto">
                   <span className="uppercase text-white font-semibold text-xs sm:text-sm">
                     Explore Products
                   </span>
@@ -61,12 +118,15 @@ export default function Home() {
               </Link>
 
               {/* BUTTON 2 */}
-              <button className="flex items-center justify-center gap-3 border border-gray-300 hover:border-lime-500 transition px-5 py-2.5 rounded-lg group bg-white/70 backdrop-blur-sm w-full sm:w-auto">
+              <button
+                onClick={() => setOpenVideo(true)}
+                className="flex items-center justify-center gap-3 border border-gray-300 hover:border-[#65BC4F] transition px-5 py-2.5 rounded-lg group bg-white/70 backdrop-blur-sm w-full sm:w-auto"
+              >
                 <span className="uppercase font-semibold text-xs sm:text-sm text-black group-hover:text-lime-600">
                   Watch Video
                 </span>
 
-                <div className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center group-hover:border-lime-500">
+                <div className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center group-hover:border-[#65BC4F]">
                   <span className="text-xs text-black group-hover:text-lime-600">
                     ▶
                   </span>
@@ -91,7 +151,7 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-2xl font-bold text-[var(--text-primary)]">
-                  50+
+                  <Counter end={50} suffix="+" />
                 </h3>
 
                 <p className="text-sm text-[var(--text-secondary)] mt-1 leading-6">
@@ -107,7 +167,7 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-2xl font-bold text-[var(--text-primary)]">
-                  12000+
+                  <Counter end={12000} suffix="+" />
                 </h3>
 
                 <p className="text-sm text-[var(--text-secondary)] mt-1 leading-6">
@@ -123,7 +183,7 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-2xl font-bold text-[var(--text-primary)]">
-                  80+
+                  <Counter end={80} suffix="+" />
                 </h3>
 
                 <p className="text-sm text-[var(--text-secondary)] mt-1 leading-6">
@@ -139,7 +199,7 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-2xl font-bold text-[var(--text-primary)]">
-                  100+
+                  <Counter end={100} suffix="+" />
                 </h3>
 
                 <p className="text-sm text-[var(--text-secondary)] mt-1 leading-6">
@@ -155,11 +215,91 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-2xl font-bold text-[var(--text-primary)]">
-                  100%
+                  <Counter end={100} suffix="%" />
                 </h3>
 
                 <p className="text-sm text-[var(--text-secondary)] mt-1 leading-6">
                   Customer Satisfaction
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative py-16  overflow-hidden bg-[var(--background)]">
+        {/* DARK GRADIENT ONLY FOR DARK MODE */}
+        <div className="absolute inset-0 dark:bg-[var(--gradient-dark)]" />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* LEFT CONTENT */}
+            <div>
+              <p className="text-[var(--primary)] font-semibold uppercase tracking-[2px] text-sm">
+                About HPMC
+              </p>
+
+              <h2 className="mt-4 text-4xl md:text-5xl font-bold leading-tight text-[var(--foreground)]">
+                Redefining Extrusion
+                <br />
+                Since <span className="text-[var(--primary)]">1971</span>
+              </h2>
+
+              <p className="mt-4 text-[15px] md:text-[17px] leading-8 text-[var(--text-secondary)] max-w-[620px]">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora
+                ratione illum eaque architecto doloremque, dignissimos
+                voluptatem beatae autem molestiae.
+              </p>
+
+              {/* FEATURES */}
+              <div className="mt-4 space-y-2">
+                {[
+                  "Lorem ipsum dolor sit amet consectetur",
+                  "Lorem ipsum dolor sit amet adipisicing elit",
+                  "Lorem ipsum dolor sit amet consectetur elit",
+                  "Lorem ipsum dolor sit amet consectetur",
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-sm">
+                      ✓
+                    </div>
+
+                    <p className="text-[var(--text-primary)]">{item}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* BUTTON */}
+              <Link href="/about">
+                <button className="mt-5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition px-8 py-4 rounded-xl text-white font-semibold uppercase tracking-wide flex items-center gap-3">
+                  Know More About Us
+                  <span>→</span>
+                </button>
+              </Link>
+            </div>
+
+            {/* RIGHT IMAGE */}
+            <div className="relative hidden md:block">
+              <div className="relative overflow-hidden rounded-[30px] border border-[var(--border)]">
+                <img
+                  src="/product.jpg"
+                  alt="about"
+                  className="w-full h-[400px] md:h-[480px] object-cover"
+                />
+
+                {/* LIGHT OVERLAY */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent dark:from-black/50" />
+              </div>
+
+              {/* FLOATING CARD */}
+              <div className="absolute bottom-6 left-6 right-6 md:w-[320px] bg-[var(--card)]/90 backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 shadow-[var(--shadow-primary)]">
+                <h3 className="text-2xl font-bold text-[var(--text-primary)]">
+                  50+ Years
+                </h3>
+
+                <p className="mt-3 text-[15px] leading-7 text-[var(--text-secondary)]">
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum
+                  molestiae dolores eaque.
                 </p>
               </div>
             </div>
@@ -334,85 +474,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative py-16  overflow-hidden bg-[var(--background)]">
-        {/* DARK GRADIENT ONLY FOR DARK MODE */}
-        <div className="absolute inset-0 dark:bg-[var(--gradient-dark)]" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* LEFT CONTENT */}
-            <div>
-              <p className="text-[var(--primary)] font-semibold uppercase tracking-[2px] text-sm">
-                About HPMC
-              </p>
-
-              <h2 className="mt-4 text-4xl md:text-5xl font-bold leading-tight text-[var(--foreground)]">
-                Redefining Extrusion
-                <br />
-                Since <span className="text-[var(--primary)]">1971</span>
-              </h2>
-
-              <p className="mt-4 text-[15px] md:text-[17px] leading-8 text-[var(--text-secondary)] max-w-[620px]">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora
-                ratione illum eaque architecto doloremque, dignissimos
-                voluptatem beatae autem molestiae.
-              </p>
-
-              {/* FEATURES */}
-              <div className="mt-4 space-y-2">
-                {[
-                  "Lorem ipsum dolor sit amet consectetur",
-                  "Lorem ipsum dolor sit amet adipisicing elit",
-                  "Lorem ipsum dolor sit amet consectetur elit",
-                  "Lorem ipsum dolor sit amet consectetur",
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-sm">
-                      ✓
-                    </div>
-
-                    <p className="text-[var(--text-primary)]">{item}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* BUTTON */}
-              <Link href="/about">
-                <button className="mt-5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition px-8 py-4 rounded-xl text-white font-semibold uppercase tracking-wide flex items-center gap-3">
-                  Know More About Us
-                  <span>→</span>
-                </button>
-              </Link>
-            </div>
-
-            {/* RIGHT IMAGE */}
-            <div className="relative">
-              <div className="relative overflow-hidden rounded-[30px] border border-[var(--border)]">
-                <img
-                  src="/product.jpg"
-                  alt="about"
-                  className="w-full h-[400px] md:h-[480px] object-cover"
-                />
-
-                {/* LIGHT OVERLAY */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent dark:from-black/50" />
-              </div>
-
-              {/* FLOATING CARD */}
-              <div className="absolute bottom-6 left-6 right-6 md:w-[320px] bg-[var(--card)]/90 backdrop-blur-xl border border-[var(--border)] rounded-2xl p-6 shadow-[var(--shadow-primary)]">
-                <h3 className="text-2xl font-bold text-[var(--text-primary)]">
-                  50+ Years
-                </h3>
-
-                <p className="mt-3 text-[15px] leading-7 text-[var(--text-secondary)]">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum
-                  molestiae dolores eaque.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Clients />
 
       <section className="relative py-16  bg-[var(--background)] overflow-hidden">
         {/* BACKGROUND EFFECT */}
@@ -521,8 +583,165 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <section className="relative overflow-hidden py-16 bg-[var(--background)]">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center mb-14">
+            <p className="text-[var(--primary)] font-semibold uppercase tracking-[2px] text-sm">
+              Testimonials
+            </p>
+
+            <h2 className="mt-3 text-3xl md:text-5xl font-bold text-[var(--text-primary)]">
+              What Our Clients Say
+            </h2>
+
+            <div className="w-16 h-[3px] bg-[var(--primary)] mx-auto mt-4 rounded-full" />
+
+            <p className="mt-5 max-w-2xl mx-auto text-[var(--text-secondary)] leading-8">
+              Trusted by businesses worldwide for delivering quality,
+              reliability, and innovation.
+            </p>
+          </div>
+
+          {/* Slider */}
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            autoplay={{
+              delay: 4000,
+              disableOnInteraction: false,
+            }}
+            pagination={{
+              clickable: true,
+            }}
+            loop
+            spaceBetween={24}
+            breakpoints={{
+              0: {
+                slidesPerView: 1,
+              },
+              768: {
+                slidesPerView: 2,
+              },
+              1200: {
+                slidesPerView: 3,
+              },
+            }}
+          >
+            {testimonials.map((item, index) => (
+              <SwiperSlide key={index}>
+                <div
+                  className="group flex h-[340px] flex-col rounded-3xl border p-6 transition-all duration-500 hover:shadow-2xl"
+                  style={{
+                    borderColor: "var(--border)",
+                  }}
+                >
+                  {/* Quote */}
+                  <div className="mb-6 flex justify-between">
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={18}
+                          className="fill-[var(--primary)] text-[var(--primary)]"
+                        />
+                      ))}
+                    </div>
+
+                    <Quote
+                      size={34}
+                      className="text-[var(--primary)] opacity-30"
+                    />
+                  </div>
+
+                  {/* Review */}
+                  <div className="mb-6 flex-1 overflow-y-auto pr-2">
+                    <p className="leading-8 text-[var(--text-secondary)]">
+                      "{item.review}"
+                    </p>
+                  </div>
+
+                  {/* User */}
+                  <div className="mt-auto flex items-center gap-4 border-t pt-5 border-[var(--border)]">
+                    <div
+                      className="flex h-14 w-14 items-center justify-center rounded-full border-2 text-lg font-bold"
+                      style={{
+                        borderColor: "var(--primary)",
+                        background: "rgba(132,204,22,0.12)",
+                        color: "var(--primary)",
+                      }}
+                    >
+                      {item.name.charAt(0).toUpperCase()}
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-[var(--text-primary)]">
+                        {item.name}
+                      </h4>
+
+                      <p className="text-sm text-[var(--text-secondary)]">
+                        {item.company}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+      </section>
       <CTA />
       <Footer />
+      <FloatingContact />
+      <PopupForm open={openPopup} onClose={() => setOpenPopup(false)} />
+
+      {openVideo && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setOpenVideo(false)}
+        >
+          <div
+            className="relative w-full max-w-5xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setOpenVideo(false)}
+              className="absolute -top-12 right-0 text-white text-4xl leading-none hover:text-[#65BC4F]"
+            >
+              ×
+            </button>
+
+            {/* Video */}
+            <div className="overflow-hidden rounded-2xl bg-black shadow-2xl">
+              <video controls preload="metadata" className="w-full h-auto">
+                <source src="/abc.mp4" type="video/mp4" />
+                Your browser does not support video playback.
+              </video>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Counter({ end, suffix = "" }: CounterProps) {
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.3,
+  });
+
+  return (
+    <div ref={ref}>
+      {inView ? (
+        <CountUp start={0} end={end} duration={2.5} separator=",">
+          {({ countUpRef }) => <span ref={countUpRef} />}
+        </CountUp>
+      ) : (
+        0
+      )}
+      {suffix}
     </div>
   );
 }

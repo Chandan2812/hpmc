@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 import LanguageSelector from "./LanguageSelector";
 import ThemeToggle from "./Theme-toggle";
+import PopupForm from "./Popup";
 
 const productsData = [
   {
@@ -101,6 +102,7 @@ export default function Navbar() {
   const [openMobileCategory, setOpenMobileCategory] = useState<number | null>(
     null,
   );
+  const [openPopup, setOpenPopup] = useState(false);
 
   useEffect(() => {
     const googleTranslateElementInit = () => {
@@ -258,7 +260,10 @@ export default function Navbar() {
               <ThemeToggle />
 
               {/* BUTTON */}
-              <button className="hidden lg:flex items-center gap-3 bg-[var(--primary)] rounded-full pl-4 pr-1 py-1 group hover:bg-[var(--background)] border-2 border-[var(--primary)] transition-all duration-300">
+              <button
+                onClick={() => setOpenPopup(true)}
+                className="hidden lg:flex items-center gap-3 bg-[var(--primary)] rounded-full pl-4 pr-1 py-1 group hover:bg-[var(--background)] border-2 border-[var(--primary)] transition-all duration-300"
+              >
                 <span className="text-[14px] uppercase font-semibold text-white group-hover:text-[var(--text-primary)]">
                   Get A Quote
                 </span>
@@ -368,13 +373,6 @@ export default function Navbar() {
             </div>
 
             <Link
-              href="/solutions"
-              className="py-4 text-[var(--text-primary)] font-semibold uppercase text-sm"
-            >
-              Solutions
-            </Link>
-
-            <Link
               href="/services"
               className="py-4 text-[var(--text-primary)] font-semibold uppercase text-sm"
             >
@@ -403,7 +401,10 @@ export default function Navbar() {
             </Link>
 
             {/* MOBILE BUTTON */}
-            <button className="mt-8 flex items-center justify-center gap-4 border-2 border-[var(--primary)] rounded-full py-2 group">
+            <button
+              onClick={() => setOpenPopup(true)}
+              className="mt-8 flex items-center justify-center gap-4 border-2 border-[var(--primary)] rounded-full py-2 group"
+            >
               <span className="text-[14px] uppercase font-semibold text-[var(--text-primary)]">
                 Get A Quote
               </span>
@@ -415,6 +416,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+      <PopupForm open={openPopup} onClose={() => setOpenPopup(false)} />
     </>
   );
 }

@@ -269,7 +269,7 @@ export default function Footer() {
         </div>
 
         {/* BOTTOM */}
-        <div className="border-t border-white/10">
+        <div className="border-t border-white/10 pb-12 md:pb-0">
           <div className="max-w-7xl mx-auto px-4 lg:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-500 text-sm">
               © 2026 HPMC. All Rights Reserved.

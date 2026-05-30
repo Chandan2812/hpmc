@@ -10,15 +10,15 @@
   --foreground: #0b1220;
 
   /* Primary Brand */
-  --primary: #84cc16;
-  --primary-dark: #65a30d;
+  --primary: #65bc4f;
+  --primary-dark: #65bc4f;
 
   /* Secondary */
   --secondary: #0f172a;
   --secondary-light: #1e293b;
 
   /* Accent */
-  --accent: #22c55e;
+  --accent: #65bc4f;
 
   /* Text */
   --text-primary: #111827;
@@ -53,13 +53,13 @@
   --background: #020817;
   --foreground: #ffffff;
 
-  --primary: #84cc16;
-  --primary-dark: #65a30d;
+  --primary: #65bc4f;
+  --primary-dark: #65bc4f;
 
   --secondary: #0f172a;
   --secondary-light: #1e293b;
 
-  --accent: #22c55e;
+  --accent: #65bc4f;
 
   /* IMPROVED TEXT */
   --text-primary: #f8fafc;

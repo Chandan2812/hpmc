@@ -1,0 +1,211 @@
+"use client";
+
+import { useState } from "react";
+import { MessageCircle, X, Phone, Calendar, Headphones } from "lucide-react";
+import PopupForm from "./Popup";
+
+export default function FloatingContact() {
+  const [open, setOpen] = useState(false);
+  const [openPopup, setOpenPopup] = useState(false);
+
+  return (
+    <>
+      {/* ================= DESKTOP ================= */}
+      <div className="hidden md:block">
+        {open && (
+          <div
+            className="fixed bottom-32 right-6 z-[9999] w-[340px] overflow-hidden rounded-2xl border shadow-2xl"
+            style={{
+              background: "var(--card)",
+              borderColor: "var(--border)",
+              boxShadow: "var(--shadow-primary)",
+            }}
+          >
+            {/* Header */}
+            <div
+              className="px-6 py-5 text-center text-white"
+              style={{
+                background: "var(--primary)",
+              }}
+            >
+              <h3 className="text-xl font-bold">Let's Connect</h3>
+
+              <p className="mt-1 text-sm opacity-90">
+                Choose your preferred way
+              </p>
+            </div>
+
+            {/* WhatsApp */}
+            <a
+              href="https://api.whatsapp.com/send?phone=91123123123"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 border-b px-6 py-5 transition-all duration-300 hover:bg-[var(--muted)]"
+              style={{
+                borderColor: "var(--border)",
+              }}
+            >
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-full"
+                style={{
+                  background: "rgba(132,204,22,0.12)",
+                  color: "var(--primary)",
+                }}
+              >
+                <MessageCircle size={20} />
+              </div>
+
+              <div>
+                <p
+                  className="font-semibold"
+                  style={{
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  WhatsApp Us
+                </p>
+
+                <p
+                  className="text-sm"
+                  style={{
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Quick support anytime
+                </p>
+              </div>
+            </a>
+
+            {/* Call */}
+            <a
+              href="tel:+918800818156"
+              className="flex items-center gap-4 border-b px-6 py-5 transition-all duration-300 hover:bg-[var(--muted)]"
+              style={{
+                borderColor: "var(--border)",
+              }}
+            >
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-full"
+                style={{
+                  background: "rgba(132,204,22,0.12)",
+                  color: "var(--primary)",
+                }}
+              >
+                <Phone size={20} />
+              </div>
+
+              <div>
+                <p
+                  className="font-semibold"
+                  style={{
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Call Us
+                </p>
+
+                <p
+                  className="text-sm"
+                  style={{
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  +91 88008 18156
+                </p>
+              </div>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false); // close floating panel
+                setOpenPopup(true); // open popup form
+              }}
+              className="flex w-full items-center gap-4 px-6 py-5 text-left transition-all duration-300 hover:bg-[var(--muted)]"
+            >
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-full"
+                style={{
+                  background: "rgba(132,204,22,0.12)",
+                  color: "var(--primary)",
+                }}
+              >
+                <Calendar size={20} />
+              </div>
+
+              <div>
+                <p
+                  className="font-semibold"
+                  style={{
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Book Consultation
+                </p>
+
+                <p
+                  className="text-sm"
+                  style={{
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Plan your project with us
+                </p>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {/* Floating Button */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="fixed bottom-6 right-6 z-[9999] flex h-16 w-16 items-center justify-center rounded-full text-white transition-all duration-300 hover:scale-110"
+          style={{
+            background: "var(--primary)",
+            boxShadow: "var(--shadow-primary)",
+          }}
+        >
+          {open ? <X size={26} /> : <Headphones size={26} />}
+        </button>
+      </div>
+
+      {/* ================= MOBILE ================= */}
+      <div className="fixed bottom-0 left-0 z-[9999] w-full md:hidden">
+        <div
+          className="flex border-t"
+          style={{
+            background: "var(--card)",
+            borderColor: "var(--border)",
+          }}
+        >
+          {/* WhatsApp */}
+          <a
+            href="https://api.whatsapp.com/send?phone=91123123123"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-1 items-center justify-center gap-2 py-4 font-medium"
+            style={{
+              color: "var(--primary)",
+            }}
+          >
+            <MessageCircle size={18} />
+            WhatsApp
+          </a>
+
+          {/* Call */}
+          <a
+            href="tel:+91123123123"
+            className="flex flex-1 items-center justify-center gap-2 py-4 font-medium text-white"
+            style={{
+              background: "var(--primary)",
+            }}
+          >
+            <Phone size={18} />
+            Call Now
+          </a>
+        </div>
+      </div>
+      <PopupForm open={openPopup} onClose={() => setOpenPopup(false)} />
+    </>
+  );
+}

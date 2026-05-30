@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import PopupForm from "./Popup";
+import { useState } from "react";
 
 export default function CTA() {
+  const [openPopup, setOpenPopup] = useState(false);
   return (
     <section className="relative bg-[var(--background)] overflow-hidden">
       <div>
@@ -69,7 +72,10 @@ export default function CTA() {
                 </div>
               </div>
               {/* BUTTON */}
-              <button className="hidden lg:flex items-center gap-3 bg-[var(--primary)] rounded-full pl-4 pr-1 py-1 group hover:bg-[var(--background)] border-2 border-[var(--primary)] transition-all duration-300">
+              <button
+                onClick={() => setOpenPopup(true)}
+                className="hidden lg:flex items-center gap-3 bg-[var(--primary)] rounded-full pl-4 pr-1 py-1 group hover:bg-[var(--background)] border-2 border-[var(--primary)] transition-all duration-300"
+              >
                 <span className="text-[14px] uppercase font-semibold text-white group-hover:text-[var(--text-primary)]">
                   Request A Quote
                 </span>
@@ -84,6 +90,7 @@ export default function CTA() {
           </div>
         </div>
       </div>
+      <PopupForm open={openPopup} onClose={() => setOpenPopup(false)} />
     </section>
   );
 }
