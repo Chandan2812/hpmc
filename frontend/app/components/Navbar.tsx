@@ -268,13 +268,14 @@ export default function Navbar() {
   const [mobileCompany, setMobileCompany] = useState(false);
   const [mobileService, setMobileService] = useState(false);
   const pathname = usePathname();
-
-  const [submenuTop, setSubmenuTop] = useState(0);
-
   const isCompanyActive = companyMenu.some((item) => pathname === item.link);
 
   const isServiceActive = serviceSupportMenu.some(
     (item) => pathname === item.link,
+  );
+
+  const isProductActive = productsData.some((category) =>
+    category.children.some((product) => pathname === product.link),
   );
 
   useEffect(() => {
@@ -381,10 +382,21 @@ export default function Navbar() {
                 className="relative group h-full flex items-center"
                 onMouseLeave={() => setActiveDropdown(null)}
               >
-                <button className="flex items-center gap-1 text-[14px] uppercase font-semibold tracking-wide text-[var(--text-primary)] hover:text-[var(--primary)] transition h-full">
+                <button
+                  className={`flex items-center gap-1 text-[14px] uppercase font-semibold tracking-wide transition h-full ${
+                    isProductActive
+                      ? "text-[var(--primary)]"
+                      : "text-[var(--text-primary)] hover:text-[var(--primary)]"
+                  }`}
+                >
+                  {" "}
                   Products
                   <ChevronDown size={16} />
                 </button>
+
+                {isProductActive && (
+                  <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[var(--primary)] rounded-full" />
+                )}
 
                 {/* DROPDOWN */}
                 <div className="absolute top-full left-0 mt-0 w-[340px] bg-[var(--card)] shadow-[var(--shadow-primary)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-[var(--border)]">
@@ -469,6 +481,9 @@ export default function Navbar() {
                 }`}
               >
                 Gallery
+                {pathname === "/gallery" && (
+                  <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[var(--primary)] rounded-full" />
+                )}
               </Link>
 
               {/* BLOG */}
@@ -481,6 +496,9 @@ export default function Navbar() {
                 }`}
               >
                 Blog
+                {pathname === "/blog" && (
+                  <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[var(--primary)] rounded-full" />
+                )}
               </Link>
 
               {/* CONTACT */}
@@ -493,6 +511,9 @@ export default function Navbar() {
                 }`}
               >
                 Contact
+                {pathname === "/contact" && (
+                  <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[var(--primary)] rounded-full" />
+                )}
               </Link>
             </nav>
 

@@ -203,90 +203,198 @@ iframe.goog-te-menu-frame {
   background-image: none !important;
 }
 
+/* =========================================
+   BLOG CONTENT
+========================================= */
+
 .blog-content {
   margin: 0 auto;
   padding: 2rem 1rem;
-  line-height: 1.5;
-  font-size: 1rem;
+  color: var(--text-primary);
+  line-height: 1.9;
+  font-size: 16px;
 }
 
+/* Headings */
+
 .blog-content h1 {
-  font-size: 2rem;
+  color: var(--text-primary);
+  font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 700;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  line-height: 1.2;
+  margin: 2.5rem 0 1.25rem;
 }
 
 .blog-content h2 {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 2rem 0 1rem;
 }
 
 .blog-content h3 {
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 1.5rem 0 0.75rem;
 }
 
-.blog-content p {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  font-size: 14px;
+.blog-content h4,
+.blog-content h5,
+.blog-content h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin: 1.25rem 0 0.75rem;
 }
+
+/* Paragraph */
+
+.blog-content p {
+  color: var(--text-secondary);
+  margin: 1rem 0;
+  line-height: 1.9;
+  font-size: 16px;
+}
+
+/* Lists */
 
 .blog-content ul,
 .blog-content ol {
-  padding-left: 1.5rem;
-  margin: 1rem 0;
-  font-size: 14px;
-}
-
-.blog-content li {
-  margin-bottom: 0.5rem;
-}
-
-.blog-content a {
-  color: #ede96e;
-  text-decoration: none;
-}
-
-.blog-content blockquote {
-  border-left: 4px solid #d1d5db; /* gray-300 */
-  padding-left: 1rem;
-  color: #6b7280; /* gray-500 */
-  font-style: italic;
-  margin: 1rem 0;
+  color: var(--text-secondary);
+  padding-left: 1.75rem;
+  margin: 1.25rem 0;
 }
 
 .blog-content ul {
-  list-style-type: disc; /* bullets */
+  list-style: disc;
 }
 
 .blog-content ol {
-  list-style-type: decimal; /* numbers */
+  list-style: decimal;
 }
+
+.blog-content li {
+  margin-bottom: 0.75rem;
+  line-height: 1.8;
+}
+
+/* Links */
+
+.blog-content a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.blog-content a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* Images */
+
+.blog-content img {
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+  margin: 2rem 0;
+}
+
+/* Blockquote */
+
+.blog-content blockquote {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border-left: 4px solid var(--primary);
+  background: var(--muted);
+  border-radius: 16px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Tables */
+
+.blog-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.blog-content th {
+  background: var(--primary);
+  color: white;
+  padding: 12px;
+  text-align: left;
+}
+
+.blog-content td {
+  padding: 12px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.blog-content tr:nth-child(even) {
+  background: var(--muted);
+}
+
+/* Code */
+
+.blog-content pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.blog-content code {
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+/* Horizontal Line */
+
+.blog-content hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* CTA */
 
 .blog-popup-cta {
-  margin: 30px 0;
+  margin: 40px 0;
 }
 
-/* Fixed height + scrollable editor */
+/* =========================================
+   QUILL EDITOR
+========================================= */
+
+.newsletter-editor .ql-toolbar {
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
 .newsletter-editor .ql-container {
   min-height: 180px;
   max-height: 240px;
   overflow-y: auto;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-primary);
 }
 
-/* Keep text readable */
 .newsletter-editor .ql-editor {
   min-height: 180px;
+  color: var(--text-primary);
 }
 
-/* Optional: toolbar styling for dark UI */
-.newsletter-editor .ql-toolbar {
-  background: #0f0f0f;
-  border-color: #374151;
+.newsletter-editor .ql-editor.ql-blank::before {
+  color: var(--text-light);
 }
