@@ -164,7 +164,7 @@ export default function TechnicalAssistance() {
         </div>
       </section>
 
-      <section className="py-24 bg-[var(--muted)]">
+      <section className="py-16 bg-[var(--muted)]">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <div className="text-center mb-16">
             <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
