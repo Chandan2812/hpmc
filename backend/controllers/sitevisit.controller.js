@@ -30,9 +30,18 @@ exports.createSiteVisit = async (req, res) => {
 
     <p><strong>Company:</strong> ${siteVisit.companyName}</p>
 
-    <p><strong>Visit Date & Time:</strong>
-      ${new Date(siteVisit.visitDateTime).toLocaleString("en-IN")}
-    </p>
+    <p>
+  <strong>Visit Date & Time:</strong>
+  ${new Date(siteVisit.visitDateTime).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })} IST
+</p>
 
     <p>
       <strong>Message:</strong><br/>
