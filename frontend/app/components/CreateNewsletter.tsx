@@ -1,8 +1,20 @@
 "use client";
 
-import { X, ImageIcon } from "lucide-react";
-import { useState } from "react";
+import {
+  AlertCircle,
+  Check,
+  FileText,
+  ImageIcon,
+  Mail,
+  Paperclip,
+  Send,
+  Trash2,
+  UploadCloud,
+  Users,
+  X,
+} from "lucide-react";
 import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
 
 import "react-quill-new/dist/quill.snow.css";
 
@@ -10,34 +22,59 @@ const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 interface Props {
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
 }
+
+const editorModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["link"],
+    ["clean"],
+  ],
+};
 
 export default function CreateNewsletterModal({ onClose, onSuccess }: Props) {
   const [subject, setSubject] = useState("");
-
   const [content, setContent] = useState("");
-
   const [files, setFiles] = useState<File[]>([]);
-
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const plainContent = useMemo(
+    () =>
+      content
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g, "")
+        .trim(),
+    [content],
+  );
+
+  const completion = useMemo(() => {
+    const checks = [subject.trim(), plainContent];
+    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  }, [plainContent, subject]);
+
+  const totalAttachmentSize = files.reduce((sum, file) => sum + file.size, 0);
 
   const handleSubmit = async () => {
-    if (!subject.trim() || !content.trim()) {
-      alert("Subject and content are required");
-
-      return;
-    }
-
     try {
+      setError("");
+
+      if (!subject.trim()) {
+        throw new Error("Newsletter subject is required");
+      }
+
+      if (!plainContent) {
+        throw new Error("Newsletter content is required");
+      }
+
       setLoading(true);
 
       const formData = new FormData();
-
-      formData.append("subject", subject);
-
+      formData.append("subject", subject.trim());
       formData.append("content", content);
-
       files.forEach((file) => formData.append("attachments", file));
 
       const res = await fetch(
@@ -51,189 +88,323 @@ export default function CreateNewsletterModal({ onClose, onSuccess }: Props) {
       const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json.message);
+        throw new Error(json.message || "Failed to send newsletter");
       }
 
-      onSuccess();
+      await onSuccess();
       onClose();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to send newsletter");
+      setError(
+        err instanceof Error ? err.message : "Failed to send newsletter",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
-      <div
-        className="
-          bg-[var(--card)]
-          border border-[var(--border)]
-          rounded-2xl
-          w-full max-w-4xl
-          shadow-2xl
-          max-h-[95vh]
-          overflow-hidden
-          flex flex-col
-        "
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between px-6 py-5 border-b border-[var(--border)]">
-          <div>
-            <h2 className="font-serif text-2xl text-[var(--text-primary)]">
-              Create Newsletter
-            </h2>
+  const handleFiles = (fileList: FileList | null) => {
+    if (!fileList) return;
 
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
-              Write and send to all subscribers
-            </p>
+    const incoming = Array.from(fileList);
+    setFiles((prev) => {
+      const existing = new Set(prev.map((file) => `${file.name}-${file.size}`));
+      const next = incoming.filter(
+        (file) => !existing.has(`${file.name}-${file.size}`),
+      );
+      return [...prev, ...next];
+    });
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index));
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-3 py-4 backdrop-blur-md sm:px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-newsletter-title"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !loading) onClose();
+      }}
+    >
+      <div className="relative flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--card)] shadow-[0_30px_100px_rgba(0,0,0,0.35)] md:rounded-[32px]">
+        <div className="border-b border-[var(--border)] bg-[var(--card)] px-5 py-5 md:px-8">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] uppercase tracking-[3px] text-[var(--primary)] sm:text-xs sm:tracking-[4px]">
+                Newsletter Campaign
+              </p>
+              <h2
+                id="create-newsletter-title"
+                className="truncate font-serif text-2xl text-[var(--text-primary)] md:text-3xl"
+              >
+                {subject || "Create Newsletter"}
+              </h2>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                Compose, attach files, and send to all subscribers.
+              </p>
+            </div>
+
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-primary)] transition hover:bg-[var(--background-secondary)] disabled:opacity-50 md:h-11 md:w-11"
+              aria-label="Close newsletter modal"
+            >
+              <X size={20} />
+            </button>
           </div>
 
-          <button
-            onClick={onClose}
-            className="text-[var(--text-secondary)] hover:text-[var(--primary)]"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
-          {/* Subject */}
-          <section>
-            <label className="block text-xs uppercase tracking-[2px] text-[var(--text-secondary)] mb-3">
-              Subject
-            </label>
-
-            <input
-              type="text"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Newsletter subject"
-              className="
-                w-full h-12 px-4
-                border border-[var(--border)]
-                bg-[var(--card)]
-                text-[var(--text-primary)]
-                outline-none
-                focus:border-[var(--primary)]
-              "
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <MiniStat
+              icon={<Mail size={16} />}
+              label="Subject"
+              value={subject.trim() ? "Ready" : "Missing"}
             />
-          </section>
+            <MiniStat
+              icon={<Users size={16} />}
+              label="Recipients"
+              value="All subscribers"
+            />
+            <MiniStat
+              icon={<Paperclip size={16} />}
+              label="Attachments"
+              value={`${files.length} files`}
+            />
+          </div>
 
-          {/* Editor */}
-          <section>
-            <label className="block text-xs uppercase tracking-[2px] text-[var(--text-secondary)] mb-3">
-              Newsletter Content
-            </label>
-
-            <div className="border border-[var(--border)] rounded-2xl overflow-hidden bg-[var(--card)]">
-              <ReactQuill
-                theme="snow"
-                value={content}
-                onChange={setContent}
-                placeholder="Write newsletter content here..."
-                className="newsletter-editor"
-                modules={{
-                  toolbar: [
-                    [
-                      {
-                        header: [1, 2, 3, false],
-                      },
-                    ],
-                    ["bold", "italic", "underline"],
-                    [
-                      {
-                        list: "ordered",
-                      },
-                      {
-                        list: "bullet",
-                      },
-                    ],
-                    ["link"],
-                    ["clean"],
-                  ],
-                }}
+          <div className="mt-5">
+            <div className="mb-2 flex items-center justify-between text-xs">
+              <span className="font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                Campaign Readiness
+              </span>
+              <span className="font-semibold text-[var(--primary)]">
+                {completion}%
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-[var(--background-secondary)]">
+              <div
+                className="h-full rounded-full bg-[var(--primary)] transition-all"
+                style={{ width: `${completion}%` }}
               />
             </div>
-          </section>
-
-          {/* Upload */}
-          <section>
-            <label className="block text-xs uppercase tracking-[2px] text-[var(--text-secondary)] mb-3">
-              Attachments
-            </label>
-
-            <label
-              htmlFor="newsletter-files"
-              className="
-                flex flex-col items-center justify-center
-                h-40
-                border-2 border-dashed border-[var(--border)]
-                rounded-2xl
-                bg-[var(--bg-secondary)]
-                cursor-pointer
-                hover:border-[var(--primary)]
-                transition
-              "
-            >
-              <ImageIcon
-                size={26}
-                className="text-[var(--text-secondary)] mb-3"
-              />
-
-              <p className="text-sm text-[var(--text-light)]">
-                Click to upload files
-              </p>
-
-              <p className="text-xs text-[var(--text-secondary)] mt-1">
-                Images or documents
-              </p>
-
-              <input
-                id="newsletter-files"
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) =>
-                  setFiles(e.target.files ? Array.from(e.target.files) : [])
-                }
-              />
-            </label>
-
-            {/* Files */}
-            {files.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {files.map((file, i) => (
-                  <p key={i} className="text-sm text-[var(--text-light)]">
-                    • {file.name}
-                  </p>
-                ))}
-              </div>
-            )}
-          </section>
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-[var(--border)] px-6 py-4 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="
-              h-11 px-6
-              border border-[var(--border)]
-              text-[var(--text-light)]
-              hover:border-[var(--primary)]
-              hover:text-[var(--primary)]
-            "
-          >
-            Cancel
-          </button>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 md:p-8">
+          {error && (
+            <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-600">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
 
-          <button onClick={handleSubmit}>
-            {loading ? "Sending..." : "Send Newsletter"}
-          </button>
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
+            <div className="space-y-6">
+              <section>
+                <label className="mb-2 block text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+                  Subject <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(event) => setSubject(event.target.value)}
+                  placeholder="Monthly updates, new launches, service news..."
+                  className="h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--primary)]"
+                />
+              </section>
+
+              <section>
+                <label className="mb-2 block text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+                  Newsletter Content <span className="text-red-500">*</span>
+                </label>
+                <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+                  <ReactQuill
+                    theme="snow"
+                    value={content}
+                    onChange={setContent}
+                    placeholder="Write newsletter content here..."
+                    className="newsletter-editor"
+                    modules={editorModules}
+                  />
+                </div>
+              </section>
+            </div>
+
+            <aside className="space-y-5">
+              <section className="rounded-2xl border border-[var(--border)] bg-[var(--background-secondary)] p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-[var(--text-primary)]">
+                      Attachments
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                      Add PDFs, images, or documents.
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-[var(--primary)]/10 px-2 py-1 text-xs font-semibold text-[var(--primary)]">
+                    {formatFileSize(totalAttachmentSize) || "0 KB"}
+                  </span>
+                </div>
+
+                <label
+                  htmlFor="newsletter-files"
+                  className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--card)] p-5 text-center transition hover:border-[var(--primary)] hover:bg-[var(--background-secondary)]"
+                >
+                  <UploadCloud
+                    size={28}
+                    className="mb-3 text-[var(--primary)]"
+                  />
+                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                    Upload files
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                    Select multiple attachments
+                  </p>
+                  <input
+                    id="newsletter-files"
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(event) => handleFiles(event.target.files)}
+                  />
+                </label>
+
+                {files.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {files.map((file, index) => (
+                      <div
+                        key={`${file.name}-${file.size}-${index}`}
+                        className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                          {file.type.includes("image") ? (
+                            <ImageIcon size={16} />
+                          ) : (
+                            <FileText size={16} />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-[var(--text-primary)]">
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {formatFileSize(file.size)}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-500/10"
+                          aria-label={`Remove ${file.name}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-2xl border border-[var(--border)] bg-[var(--background-secondary)] p-5">
+                <p className="mb-3 font-semibold text-[var(--text-primary)]">
+                  Send Checklist
+                </p>
+                <ChecklistItem
+                  done={Boolean(subject.trim())}
+                  label="Subject added"
+                />
+                <ChecklistItem
+                  done={Boolean(plainContent)}
+                  label="Content added"
+                />
+                <ChecklistItem done label="Audience selected" />
+              </section>
+            </aside>
+          </div>
+        </div>
+
+        <div className="border-t border-[var(--border)] bg-[var(--card)] px-5 py-4 md:px-8">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-[var(--text-secondary)]">
+              This will send immediately to all newsletter subscribers.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="h-11 flex-1 rounded-xl border border-[var(--border)] px-5 font-medium text-[var(--text-primary)] transition hover:bg-[var(--background-secondary)] disabled:opacity-50 sm:flex-none"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-6 font-medium text-white transition hover:opacity-90 disabled:opacity-70 sm:flex-none"
+              >
+                <Send size={17} />
+                {loading ? "Sending..." : "Send Newsletter"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
+}
+
+function MiniStat({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--background-secondary)] px-4 py-3">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
+          {label}
+        </p>
+        <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ChecklistItem({ done, label }: { done: boolean; label: string }) {
+  return (
+    <div className="mb-3 flex items-center gap-3 last:mb-0">
+      <span
+        className={`flex h-6 w-6 items-center justify-center rounded-full ${
+          done
+            ? "bg-green-500/10 text-green-600"
+            : "bg-[var(--card)] text-[var(--text-secondary)]"
+        }`}
+      >
+        {done && <Check size={13} />}
+      </span>
+      <span className="text-sm text-[var(--text-primary)]">{label}</span>
+    </div>
+  );
+}
+
+function formatFileSize(bytes?: number) {
+  if (!bytes) return "";
+
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${kb.toFixed(1)} KB`;
+  return `${(kb / 1024).toFixed(1)} MB`;
 }
