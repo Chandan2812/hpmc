@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const leadSchema = new mongoose.Schema(
   {
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
+    },
     // Customer Information
     name: {
       type: String,

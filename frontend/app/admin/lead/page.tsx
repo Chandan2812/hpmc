@@ -12,6 +12,12 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+interface Employee {
+  _id: string;
+  name: string;
+  email: string;
+}
+
 interface LeadRequest {
   _id: string;
   name: string;
@@ -22,6 +28,11 @@ interface LeadRequest {
   message?: string;
   marked?: boolean;
   verified?: boolean;
+  assignedTo?: {
+    _id: string;
+    name: string;
+    email: string;
+  } | null;
   createdAt: string;
 }
 
@@ -40,12 +51,13 @@ export default function AdminLead() {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "completed" | "pending"
   >("all");
-  const [verificationFilter, setVerificationFilter] = useState<
-    "all" | "verified" | "not-verified"
+  const [assignmentFilter, setAssignmentFilter] = useState<
+    "all" | "assigned" | "unassigned"
   >("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<LeadRequest | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
@@ -66,6 +78,17 @@ export default function AdminLead() {
       })
       .catch((err) => console.error("Lead Error:", err))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/employee`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setEmployees(data.employees);
+        }
+      })
+      .catch((err) => console.error("Employee Error:", err));
   }, []);
 
   /* Filter */
@@ -99,10 +122,10 @@ export default function AdminLead() {
     }
 
     // Verification filter
-    if (verificationFilter === "verified") {
-      filtered = filtered.filter((c) => c.verified === true);
-    } else if (verificationFilter === "not-verified") {
-      filtered = filtered.filter((c) => c.verified !== true);
+    if (assignmentFilter === "assigned") {
+      filtered = filtered.filter((c) => c.assignedTo);
+    } else if (assignmentFilter === "unassigned") {
+      filtered = filtered.filter((c) => !c.assignedTo);
     }
 
     // Search filter
@@ -127,7 +150,7 @@ export default function AdminLead() {
     contacts,
     searchQuery,
     statusFilter,
-    verificationFilter,
+    assignmentFilter,
   ]);
 
   const totalPages = Math.ceil(filteredContacts.length / ITEMS_PER_PAGE);
@@ -180,6 +203,64 @@ export default function AdminLead() {
     }
   };
 
+  const handleAssignLead = async (leadId: string, employeeId: string) => {
+    try {
+      const response = await fetch(`${API_BASE}/lead/assign`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          leadId,
+          employeeId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        alert("Failed to assign lead");
+        return;
+      }
+
+      const assignedEmployee = employees.find((emp) => emp._id === employeeId);
+
+      // Update Table
+      setContacts((prev) =>
+        prev.map((lead) =>
+          lead._id === leadId
+            ? {
+                ...lead,
+                assignedTo: assignedEmployee
+                  ? {
+                      _id: assignedEmployee._id,
+                      name: assignedEmployee.name,
+                      email: assignedEmployee.email,
+                    }
+                  : null,
+              }
+            : lead,
+        ),
+      );
+
+      // Update Open Modal
+      if (selectedLead?._id === leadId) {
+        setSelectedLead({
+          ...selectedLead,
+          assignedTo: assignedEmployee
+            ? {
+                _id: assignedEmployee._id,
+                name: assignedEmployee.name,
+                email: assignedEmployee.email,
+              }
+            : null,
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   /* Export to CSV */
   const handleExport = () => {
     if (filteredContacts.length === 0) {
@@ -225,12 +306,14 @@ export default function AdminLead() {
     completed: contacts.filter((c) => c.marked).length,
     pending: contacts.filter((c) => !c.marked).length,
     verified: contacts.filter((c) => c.verified).length,
+    assigned: contacts.filter((c) => c.assignedTo).length,
+    unassigned: contacts.filter((c) => !c.assignedTo).length,
   };
 
   const hasActiveFilters =
     searchQuery ||
     statusFilter !== "all" ||
-    verificationFilter !== "all" ||
+    assignmentFilter !== "all" ||
     filterType !== "all" ||
     selectedDate ||
     startDate ||
@@ -243,7 +326,7 @@ export default function AdminLead() {
     setEndDate("");
     setSearchQuery("");
     setStatusFilter("all");
-    setVerificationFilter("all");
+    setAssignmentFilter("all");
   };
 
   return (
@@ -304,7 +387,8 @@ export default function AdminLead() {
         </div>
 
         {/* Premium Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4 mb-6">
+          {" "}
           {/* Total Leads */}
           <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-2xl p-4">
             <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-2">
@@ -314,7 +398,6 @@ export default function AdminLead() {
               {stats.total}
             </p>
           </div>
-
           {/* Completed */}
           <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 rounded-2xl p-4">
             <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-2">
@@ -324,7 +407,6 @@ export default function AdminLead() {
               {stats.completed}
             </p>
           </div>
-
           {/* Pending */}
           <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/20 rounded-2xl p-4">
             <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-2">
@@ -334,7 +416,6 @@ export default function AdminLead() {
               {stats.pending}
             </p>
           </div>
-
           {/* Verified */}
           <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-2xl p-4">
             <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-2">
@@ -342,6 +423,24 @@ export default function AdminLead() {
             </p>
             <p className="text-3xl md:text-2xl font-bold text-purple-600">
               {stats.verified}
+            </p>
+          </div>
+          <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 border border-cyan-500/20 rounded-2xl p-4">
+            <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-2">
+              Assigned
+            </p>
+
+            <p className="text-3xl md:text-2xl font-bold text-cyan-600">
+              {stats.assigned}
+            </p>
+          </div>
+          <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border border-orange-500/20 rounded-2xl p-4">
+            <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-2">
+              Unassigned
+            </p>
+
+            <p className="text-3xl md:text-2xl font-bold text-orange-600">
+              {stats.unassigned}
             </p>
           </div>
         </div>
@@ -533,10 +632,10 @@ export default function AdminLead() {
                 Verified
               </label>
               <select
-                value={verificationFilter}
+                value={assignmentFilter}
                 onChange={(e) =>
-                  setVerificationFilter(
-                    e.target.value as "all" | "verified" | "not-verified",
+                  setAssignmentFilter(
+                    e.target.value as "all" | "assigned" | "unassigned",
                   )
                 }
                 className="
@@ -551,8 +650,8 @@ export default function AdminLead() {
                 "
               >
                 <option value="all">All</option>
-                <option value="verified">Verified</option>
-                <option value="not-verified">Not Verified</option>
+                <option value="assigned">Assigned</option>
+                <option value="unassigned">Unassigned</option>
               </select>
             </div>
           </div>
@@ -600,8 +699,8 @@ export default function AdminLead() {
                         Phone
                       </th>
 
-                      <th className="hidden md:table-cell px-5 py-4 text-left text-sm font-semibold text-[var(--text-primary)]">
-                        Company
+                      <th className="px-3 md:px-5 py-4 text-left text-sm font-semibold text-[var(--text-primary)]">
+                        Assigned To
                       </th>
 
                       <th className="px-3 md:px-5 py-4 text-left text-sm font-semibold text-[var(--text-primary)]">
@@ -654,9 +753,14 @@ export default function AdminLead() {
                           </div>
                         </td>
 
-                        <td className="hidden md:table-cell px-5 py-4 text-[var(--text-primary)]">
-                          {" "}
-                          {contact.companyName || "—"}
+                        <td className="px-5 py-4">
+                          {contact.assignedTo ? (
+                            <span className="text-green-600 font-medium">
+                              {contact.assignedTo.name}
+                            </span>
+                          ) : (
+                            <span className="text-yellow-600">Unassigned</span>
+                          )}
                         </td>
 
                         <td className="px-3 md:px-5 py-4">
@@ -920,6 +1024,37 @@ export default function AdminLead() {
                             </span>
                           )}
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <div className="rounded-3xl border border-[var(--border)] bg-[var(--background-secondary)] p-5">
+                        <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-4">
+                          Assign Employee
+                        </p>
+
+                        <select
+                          value={selectedLead.assignedTo?._id || ""}
+                          onChange={(e) =>
+                            handleAssignLead(selectedLead._id, e.target.value)
+                          }
+                          className="
+    w-full
+    h-11
+    rounded-xl
+    border border-[var(--border)]
+    bg-[var(--card)]
+    px-4
+  "
+                        >
+                          <option value="">Select Employee</option>
+
+                          {employees.map((employee) => (
+                            <option key={employee._id} value={employee._id}>
+                              {employee.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 

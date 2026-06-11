@@ -1,4 +1,5 @@
 const Lead = require("../models/lead.model");
+const Employee = require("../models/employee.model");
 const sendEmail = require("../utils/sendEmail");
 
 const otpStore = new Map(); // temporary in-memory storage
@@ -166,7 +167,9 @@ exports.verifyOTP = async (req, res) => {
 =============================== */
 exports.getAllLeads = async (req, res) => {
   try {
-    const leads = await Lead.find().sort({ createdAt: -1 });
+    const leads = await Lead.find()
+      .populate("assignedTo", "name email")
+      .sort({ createdAt: -1 });
     res.status(200).json(leads);
   } catch (err) {
     console.error("Error fetching leads:", err);
@@ -223,5 +226,33 @@ exports.deleteLead = async (req, res) => {
   } catch (err) {
     console.error("Error deleting lead:", err);
     res.status(500).json({ message: "Server error while deleting lead." });
+  }
+};
+
+exports.assignLead = async (req, res) => {
+  try {
+    const { leadId, employeeId } = req.body;
+
+    const lead = await Lead.findByIdAndUpdate(
+      leadId,
+      {
+        assignedTo: employeeId,
+      },
+      {
+        new: true,
+      },
+    );
+
+    res.status(200).json({
+      success: true,
+      lead,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
   }
 };

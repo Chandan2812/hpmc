@@ -19,13 +19,11 @@ import {
   UserCog,
   Users,
   Users2,
-  UserX2,
 } from "lucide-react";
 
 import Cookies from "js-cookie";
-import { FaUserGraduate } from "react-icons/fa6";
 
-export default function AdminLayout({
+export default function EmployeeLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -39,67 +37,12 @@ export default function AdminLayout({
     {
       icon: <Gauge size={18} />,
       label: "Dashboard",
-      to: "/admin",
-    },
-    {
-      icon: <Users size={18} />,
-      label: "Leads",
-      to: "/admin/lead",
-    },
-    {
-      icon: <MonitorPlay size={18} />,
-      label: "Site Visits",
-      to: "/admin/site-visit",
-    },
-    {
-      icon: <User2 size={18} />,
-      label: "Subscribers",
-      to: "/admin/subscribers",
-    },
-    {
-      icon: <Users2 size={18} />,
-      label: "Clients",
-      to: "/admin/clients",
-    },
-    {
-      icon: <FaMailBulk size={18} />,
-      label: "Newsletter",
-      to: "/admin/newsletter",
-    },
-    {
-      icon: <Newspaper size={18} />,
-      label: "Blogs",
-      to: "/admin/blogs",
-    },
-    {
-      icon: <UserCog size={18} />,
-      label: "Agents",
-      to: "/admin/agents",
-    },
-    {
-      icon: <Building2 size={18} />,
-      label: "Vendors",
-      to: "/admin/vendors",
-    },
-    {
-      icon: <Briefcase size={18} />,
-      label: "Openings",
-      to: "/admin/openings",
-    },
-    {
-      icon: <FileCheck size={18} />,
-      label: "Job Applications",
-      to: "/admin/job-applications",
-    },
-    {
-      icon: <FaUserGraduate size={18} />,
-      label: "Employees",
-      to: "/admin/employee",
+      to: "/employee",
     },
   ];
 
   const handleLogout = () => {
-    Cookies.remove("adminAuth");
+    Cookies.remove("employeeAuth");
     router.push("/login");
   };
 
@@ -118,7 +61,7 @@ export default function AdminLayout({
           />
 
           <span className="text-lg font-semibold text-[var(--text)]">
-            Admin
+            Employee
           </span>
         </div>
 
@@ -147,7 +90,7 @@ export default function AdminLayout({
             <Image src="/hp-logo.png" alt="logo" width={40} height={40} />
 
             <span className="text-lg font-semibold text-[var(--text)]">
-              Admin
+              Employee
             </span>
           </div>
 

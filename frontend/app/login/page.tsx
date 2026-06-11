@@ -16,28 +16,70 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const ADMIN_USER = process.env.NEXT_PUBLIC_ADMIN_USER;
-  const ADMIN_PASS = process.env.NEXT_PUBLIC_ADMIN_PASS;
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setLoading(true);
     setError("");
 
-    setTimeout(() => {
-      if (email === ADMIN_USER && password === ADMIN_PASS) {
+    try {
+      // ADMIN LOGIN
+
+      if (
+        email === process.env.NEXT_PUBLIC_ADMIN_USER &&
+        password === process.env.NEXT_PUBLIC_ADMIN_PASS
+      ) {
         Cookies.set("adminAuth", "true", {
           expires: 1,
           sameSite: "strict",
         });
 
         router.push("/admin");
-      } else {
-        setError("Invalid email or password");
+        return;
       }
 
+      // EMPLOYEE LOGIN
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/employee/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        },
+      );
+
+      const data = await response.json();
+      console.log(data);
+
+      if (!response.ok || !data.success) {
+        setError(data.message || "Invalid credentials");
+        return;
+      }
+
+      Cookies.set("employeeAuth", data.token, {
+        expires: 1,
+        sameSite: "strict",
+      });
+
+      Cookies.set("employee", JSON.stringify(data.employee), {
+        expires: 1,
+        sameSite: "strict",
+      });
+
+      router.push("/employee");
+    } catch (error) {
+      console.error(error);
+
+      setError("Something went wrong");
+    } finally {
       setLoading(false);
-    }, 700);
+    }
   };
 
   return (
@@ -97,11 +139,11 @@ export default function LoginPage() {
                 </div>
 
                 <h1 className="text-3xl font-bold text-[var(--text-primary)]">
-                  Admin Login
+                  Admin / Employee Login
                 </h1>
 
                 <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                  Sign in to continue to the dashboard
+                  Sign in to continue
                 </p>
               </div>
 
