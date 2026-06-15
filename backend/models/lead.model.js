@@ -56,10 +56,43 @@ const leadSchema = new mongoose.Schema(
       default: false,
     },
 
+    source: {
+      type: String,
+      trim: true,
+      default: "Website",
+    },
+
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      default: "medium",
+    },
+
     leadStatus: {
       type: String,
       enum: ["new", "contacted", "follow-up", "qualified", "won", "lost"],
       default: "new",
+    },
+
+    followUpDate: {
+      type: Date,
+      default: null,
+    },
+
+    followUpRemark: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    assignedAt: {
+      type: Date,
+      default: null,
+    },
+
+    lastActivityAt: {
+      type: Date,
+      default: Date.now,
     },
 
     notes: [
@@ -81,10 +114,37 @@ const leadSchema = new mongoose.Schema(
         },
       },
     ],
+
+    activityLog: [
+      {
+        type: {
+          type: String,
+          enum: ["created", "assigned", "status", "note", "follow-up", "marked"],
+          required: true,
+        },
+        message: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        employee: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Employee",
+          default: null,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
   },
 );
+
+leadSchema.index({ assignedTo: 1, leadStatus: 1, followUpDate: 1 });
+leadSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Lead", leadSchema);

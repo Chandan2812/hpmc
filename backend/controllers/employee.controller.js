@@ -8,7 +8,15 @@ const { EmailCampaignsApi } = require("sib-api-v3-sdk");
 // Create Employee
 exports.createEmployee = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, department, role, monthlyTarget } =
+      req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email and password are required",
+      });
+    }
 
     const existingEmployee = await Employee.findOne({ email });
 
@@ -25,6 +33,10 @@ exports.createEmployee = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      phone,
+      department,
+      role,
+      monthlyTarget,
     });
 
     res.status(201).json({
@@ -93,7 +105,8 @@ exports.getEmployeeById = async (req, res) => {
 // Update Employee
 exports.updateEmployee = async (req, res) => {
   try {
-    const { name, email, active, password } = req.body;
+    const { name, email, active, password, phone, department, role, monthlyTarget } =
+      req.body;
 
     const existingEmployee = await Employee.findOne({
       email,
@@ -111,6 +124,10 @@ exports.updateEmployee = async (req, res) => {
       name,
       email,
       active,
+      phone,
+      department,
+      role,
+      monthlyTarget,
     };
 
     if (password && password.trim()) {
@@ -264,6 +281,10 @@ exports.employeeLogin = async (req, res) => {
         _id: employee._id,
         name: employee.name,
         email: employee.email,
+        phone: employee.phone,
+        department: employee.department,
+        role: employee.role,
+        monthlyTarget: employee.monthlyTarget,
       },
     });
   } catch (error) {
@@ -276,12 +297,20 @@ exports.employeeLogin = async (req, res) => {
   }
 };
 
+const getAssignedLead = async (leadId, employeeId) => {
+  return Lead.findOne({
+    _id: leadId,
+    assignedTo: employeeId,
+  });
+};
+
 exports.getMyLeads = async (req, res) => {
   try {
     const leads = await Lead.find({
       assignedTo: req.employee.id,
     })
       .populate("assignedTo", "name email")
+      .populate("notes.createdBy", "name email")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -301,19 +330,40 @@ exports.getMyLeads = async (req, res) => {
 exports.updateLeadStatus = async (req, res) => {
   try {
     const { leadStatus } = req.body;
+    const allowedStatus = [
+      "new",
+      "contacted",
+      "follow-up",
+      "qualified",
+      "won",
+      "lost",
+    ];
 
-    const lead = await Lead.findByIdAndUpdate(
-      req.params.id,
-      { leadStatus },
-      { new: true },
-    );
+    if (!allowedStatus.includes(leadStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid lead status",
+      });
+    }
+
+    const lead = await getAssignedLead(req.params.id, req.employee.id);
 
     if (!lead) {
       return res.status(404).json({
         success: false,
-        message: "Lead not found",
+        message: "Lead not found or not assigned to you",
       });
     }
+
+    lead.leadStatus = leadStatus;
+    lead.lastActivityAt = new Date();
+    lead.activityLog.push({
+      type: "status",
+      employee: req.employee.id,
+      message: `Status changed to ${leadStatus}`,
+    });
+
+    await lead.save();
 
     res.status(200).json({
       success: true,
@@ -333,18 +383,31 @@ exports.addLeadNote = async (req, res) => {
   try {
     const { text } = req.body;
 
-    const lead = await Lead.findById(req.params.id);
+    if (!text || !text.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Note text is required",
+      });
+    }
+
+    const lead = await getAssignedLead(req.params.id, req.employee.id);
 
     if (!lead) {
       return res.status(404).json({
         success: false,
-        message: "Lead not found",
+        message: "Lead not found or not assigned to you",
       });
     }
 
     lead.notes.push({
-      text,
+      text: text.trim(),
       createdBy: req.employee.id,
+    });
+    lead.lastActivityAt = new Date();
+    lead.activityLog.push({
+      type: "note",
+      employee: req.employee.id,
+      message: text.trim(),
     });
 
     await lead.save();
@@ -367,14 +430,18 @@ exports.addLeadNote = async (req, res) => {
 
 exports.getLeadById = async (req, res) => {
   try {
-    const lead = await Lead.findById(req.params.id)
+    const lead = await Lead.findOne({
+      _id: req.params.id,
+      assignedTo: req.employee.id,
+    })
       .populate("assignedTo", "name email")
-      .populate("notes.createdBy", "name email");
+      .populate("notes.createdBy", "name email")
+      .populate("activityLog.employee", "name email");
 
     if (!lead) {
       return res.status(404).json({
         success: false,
-        message: "Lead not found",
+        message: "Lead not found or not assigned to you",
       });
     }
 
@@ -393,20 +460,81 @@ exports.getLeadById = async (req, res) => {
 };
 
 exports.updateFollowUp = async (req, res) => {
-  const { followUpDate, followUpRemark } = req.body;
+  try {
+    const { followUpDate, followUpRemark } = req.body;
 
-  const lead = await Lead.findByIdAndUpdate(
-    req.params.id,
-    {
-      followUpDate,
-      followUpRemark,
-      leadStatus: "follow-up",
-    },
-    { new: true },
-  );
+    if (!followUpDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Follow-up date is required",
+      });
+    }
 
-  res.json({
-    success: true,
-    lead,
-  });
+    const lead = await getAssignedLead(req.params.id, req.employee.id);
+
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found or not assigned to you",
+      });
+    }
+
+    lead.followUpDate = followUpDate;
+    lead.followUpRemark = followUpRemark || "";
+    lead.leadStatus = "follow-up";
+    lead.lastActivityAt = new Date();
+    lead.activityLog.push({
+      type: "follow-up",
+      employee: req.employee.id,
+      message: followUpRemark || "Follow-up scheduled",
+    });
+
+    await lead.save();
+
+    res.json({
+      success: true,
+      lead,
+    });
+  } catch (error) {
+    console.error("Update Follow Up Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+exports.getMyProfile = async (req, res) => {
+  try {
+    const employee = await Employee.findById(req.employee.id).select("-password");
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    const leads = await Lead.find({ assignedTo: req.employee.id });
+    const won = leads.filter((lead) => lead.leadStatus === "won").length;
+
+    res.status(200).json({
+      success: true,
+      employee,
+      stats: {
+        assigned: leads.length,
+        contacted: leads.filter((lead) => lead.leadStatus === "contacted").length,
+        followUps: leads.filter((lead) => lead.leadStatus === "follow-up").length,
+        won,
+        lost: leads.filter((lead) => lead.leadStatus === "lost").length,
+        conversion: leads.length ? Number(((won / leads.length) * 100).toFixed(1)) : 0,
+      },
+    });
+  } catch (error) {
+    console.error("Get My Profile Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
 };

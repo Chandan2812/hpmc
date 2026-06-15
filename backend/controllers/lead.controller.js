@@ -169,6 +169,8 @@ exports.getAllLeads = async (req, res) => {
   try {
     const leads = await Lead.find()
       .populate("assignedTo", "name email")
+      .populate("notes.createdBy", "name email")
+      .populate("activityLog.employee", "name email")
       .sort({ createdAt: -1 });
     res.status(200).json(leads);
   } catch (err) {
@@ -191,11 +193,20 @@ exports.markLead = async (req, res) => {
       });
     }
 
-    const lead = await Lead.findByIdAndUpdate(id, { marked }, { new: true });
+    const lead = await Lead.findById(id);
 
     if (!lead) {
       return res.status(404).json({ message: "Lead not found." });
     }
+
+    lead.marked = marked;
+    lead.lastActivityAt = new Date();
+    lead.activityLog.push({
+      type: "marked",
+      message: marked ? "Lead marked as completed" : "Lead marked as pending",
+    });
+
+    await lead.save();
 
     res.status(200).json({
       message: "Lead updated successfully.",
@@ -233,15 +244,48 @@ exports.assignLead = async (req, res) => {
   try {
     const { leadId, employeeId } = req.body;
 
-    const lead = await Lead.findByIdAndUpdate(
-      leadId,
-      {
-        assignedTo: employeeId,
-      },
-      {
-        new: true,
-      },
-    );
+    if (!leadId) {
+      return res.status(400).json({
+        success: false,
+        message: "Lead id is required",
+      });
+    }
+
+    const lead = await Lead.findById(leadId);
+
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    let employee = null;
+
+    if (employeeId) {
+      employee = await Employee.findOne({ _id: employeeId, active: true });
+
+      if (!employee) {
+        return res.status(404).json({
+          success: false,
+          message: "Active employee not found",
+        });
+      }
+    }
+
+    lead.assignedTo = employee ? employee._id : null;
+    lead.assignedAt = employee ? new Date() : null;
+    lead.lastActivityAt = new Date();
+    lead.activityLog.push({
+      type: "assigned",
+      employee: employee ? employee._id : null,
+      message: employee
+        ? `Lead assigned to ${employee.name}`
+        : "Lead assignment removed",
+    });
+
+    await lead.save();
+    await lead.populate("assignedTo", "name email");
 
     res.status(200).json({
       success: true,

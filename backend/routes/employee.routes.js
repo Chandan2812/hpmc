@@ -14,6 +14,8 @@ const {
   updateLeadStatus,
   addLeadNote,
   getLeadById,
+  updateFollowUp,
+  getMyProfile,
 } = require("../controllers/employee.controller");
 
 router.post("/login", employeeLogin);
@@ -23,6 +25,8 @@ router.post("/", createEmployee);
 router.get("/", getEmployees);
 
 router.get("/my-leads", employeeAuth, getMyLeads);
+
+router.get("/me/profile", employeeAuth, getMyProfile);
 
 router.get("/:id", getEmployeeById);
 
@@ -35,6 +39,8 @@ router.delete("/:id", deleteEmployee);
 router.patch("/:id/lead-status", employeeAuth, updateLeadStatus);
 
 router.post("/:id/note", employeeAuth, addLeadNote);
+
+router.patch("/:id/follow-up", employeeAuth, updateFollowUp);
 
 router.get("/:id/details", employeeAuth, getLeadById);
 
