@@ -56,12 +56,9 @@ exports.createEmployee = async (req, res) => {
 // Get All Employees
 exports.getEmployees = async (req, res) => {
   try {
-    const employees = await Employee.find(
-      { active: true },
-      {
-        password: 0,
-      },
-    ).sort({ createdAt: -1 });
+    const employees = await Employee.find({}, { password: 0 }).sort({
+      createdAt: -1,
+    });
 
     res.status(200).json({
       success: true,

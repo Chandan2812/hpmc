@@ -62,12 +62,6 @@ const leadSchema = new mongoose.Schema(
       default: "Website",
     },
 
-    priority: {
-      type: String,
-      enum: ["low", "medium", "high"],
-      default: "medium",
-    },
-
     leadStatus: {
       type: String,
       enum: ["new", "contacted", "follow-up", "qualified", "won", "lost"],

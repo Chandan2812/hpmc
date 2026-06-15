@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Activity,
   CalendarClock,
   CheckCircle2,
   Download,
@@ -20,12 +19,12 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 type LeadStatus = "new" | "contacted" | "follow-up" | "qualified" | "won" | "lost";
-type Priority = "low" | "medium" | "high";
 
 interface Employee {
   _id: string;
   name: string;
   email: string;
+  active?: boolean;
 }
 
 interface ActivityItem {
@@ -52,7 +51,6 @@ interface LeadRequest {
   marked?: boolean;
   verified?: boolean;
   leadStatus?: LeadStatus;
-  priority?: Priority;
   source?: string;
   followUpDate?: string | null;
   followUpRemark?: string;
@@ -85,7 +83,6 @@ export default function AdminLead() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<(typeof statusOptions)[number]>("all");
   const [assignmentFilter, setAssignmentFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   const fetchData = async () => {
@@ -109,16 +106,17 @@ export default function AdminLead() {
     }
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     fetchData();
   }, [API_BASE]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const filteredLeads = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     return leads.filter((lead) => {
       const status = lead.leadStatus || "new";
-      const priority = lead.priority || "medium";
       const matchesSearch =
         !query ||
         lead.name.toLowerCase().includes(query) ||
@@ -130,11 +128,10 @@ export default function AdminLead() {
       const matchesAssignment =
         assignmentFilter === "all" ||
         (assignmentFilter === "assigned" ? Boolean(lead.assignedTo) : !lead.assignedTo);
-      const matchesPriority = priorityFilter === "all" || priority === priorityFilter;
 
-      return matchesSearch && matchesStatus && matchesAssignment && matchesPriority;
+      return matchesSearch && matchesStatus && matchesAssignment;
     });
-  }, [assignmentFilter, leads, priorityFilter, searchQuery, statusFilter]);
+  }, [assignmentFilter, leads, searchQuery, statusFilter]);
 
   const stats = useMemo(
     () => ({
@@ -154,7 +151,7 @@ export default function AdminLead() {
   );
   const totalPages = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE);
   const hasFilters =
-    searchQuery || statusFilter !== "all" || assignmentFilter !== "all" || priorityFilter !== "all";
+    searchQuery || statusFilter !== "all" || assignmentFilter !== "all";
 
   const updateLeadInState = (leadId: string, patch: Partial<LeadRequest>) => {
     setLeads((prev) => prev.map((lead) => (lead._id === leadId ? { ...lead, ...patch } : lead)));
@@ -195,14 +192,13 @@ export default function AdminLead() {
 
   const handleExport = () => {
     const rows = [
-      ["Name", "Email", "Phone", "Company", "Status", "Priority", "Assigned To", "Next Follow Up"],
+      ["Name", "Email", "Phone", "Company", "Status", "Assigned To", "Next Follow Up"],
       ...filteredLeads.map((lead) => [
         lead.name,
         lead.email,
         lead.phone,
         lead.companyName || "",
         lead.leadStatus || "new",
-        lead.priority || "medium",
         lead.assignedTo?.name || "Unassigned",
         lead.followUpDate ? new Date(lead.followUpDate).toLocaleString() : "",
       ]),
@@ -220,7 +216,6 @@ export default function AdminLead() {
     setSearchQuery("");
     setStatusFilter("all");
     setAssignmentFilter("all");
-    setPriorityFilter("all");
     setCurrentPage(1);
   };
 
@@ -252,11 +247,11 @@ export default function AdminLead() {
         <Stat label="Unassigned" value={stats.unassigned} icon={<Filter size={18} />} tone="amber" />
         <Stat label="Follow Ups" value={stats.followUps} icon={<CalendarClock size={18} />} tone="violet" />
         <Stat label="Won" value={stats.won} icon={<CheckCircle2 size={18} />} tone="emerald" />
-        <Stat label="Pending" value={stats.pending} icon={<Activity size={18} />} tone="rose" />
+        <Stat label="Pending" value={stats.pending} icon={<CalendarClock size={18} />} tone="rose" />
       </div>
 
       <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
-        <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+        <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr_1fr]">
           <div className="relative">
             <Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
             <input
@@ -271,7 +266,6 @@ export default function AdminLead() {
           </div>
           <Select value={statusFilter} onChange={(value) => setStatusFilter(value as (typeof statusOptions)[number])} options={statusOptions} />
           <Select value={assignmentFilter} onChange={setAssignmentFilter} options={["all", "assigned", "unassigned"]} />
-          <Select value={priorityFilter} onChange={setPriorityFilter} options={["all", "high", "medium", "low"]} />
         </div>
       </div>
 
@@ -296,9 +290,6 @@ export default function AdminLead() {
                     <td className="px-5 py-4">
                       <p className="font-semibold">{lead.name}</p>
                       <p className="mt-1 text-sm text-[var(--text-secondary)]">{lead.companyName || "No company"}</p>
-                      <span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[11px] font-semibold ${priorityClass(lead.priority)}`}>
-                        {lead.priority || "medium"} priority
-                      </span>
                     </td>
                     <td className="px-5 py-4 text-sm">
                       <p>{lead.phone}</p>
@@ -322,7 +313,7 @@ export default function AdminLead() {
                         className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] px-3 outline-none"
                       >
                         <option value="">Unassigned</option>
-                        {employees.map((employee) => (
+                        {employees.filter((employee) => employee.active !== false).map((employee) => (
                           <option key={employee._id} value={employee._id}>{employee.name}</option>
                         ))}
                       </select>
@@ -449,7 +440,7 @@ function LeadModal({
                 className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] px-3 outline-none"
               >
                 <option value="">Unassigned</option>
-                {employees.map((employee) => (
+                {employees.filter((employee) => employee.active !== false).map((employee) => (
                   <option key={employee._id} value={employee._id}>{employee.name}</option>
                 ))}
               </select>
@@ -462,7 +453,7 @@ function LeadModal({
             </section>
 
             <section className="rounded-2xl border border-[var(--border)] p-5">
-              <h3 className="mb-4 font-semibold">Activity Timeline</h3>
+              <h3 className="mb-4 font-semibold">Timeline</h3>
               <div className="space-y-4">
                 {timeline.length ? timeline.map((item, index) => (
                   <div key={`${item.createdAt}-${index}`} className="border-l-2 border-[var(--primary)]/40 pl-4">
@@ -471,7 +462,7 @@ function LeadModal({
                       {item.employee?.name || "Admin"} - {new Date(item.createdAt).toLocaleString()}
                     </p>
                   </div>
-                )) : <p className="text-sm text-[var(--text-secondary)]">No activity recorded.</p>}
+                )) : <p className="text-sm text-[var(--text-secondary)]">No timeline recorded.</p>}
               </div>
             </section>
           </aside>
@@ -533,12 +524,4 @@ function statusClass(status: LeadStatus) {
     won: "bg-green-500/10 text-green-600",
     lost: "bg-red-500/10 text-red-600",
   }[status];
-}
-
-function priorityClass(priority: Priority = "medium") {
-  return {
-    low: "bg-slate-500/10 text-slate-600",
-    medium: "bg-blue-500/10 text-blue-600",
-    high: "bg-red-500/10 text-red-600",
-  }[priority];
 }

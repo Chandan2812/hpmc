@@ -42,7 +42,6 @@ interface Lead {
   products?: string[];
   message?: string;
   leadStatus: string;
-  priority?: string;
   source?: string;
   followUpDate?: string | null;
   followUpRemark?: string;
@@ -90,9 +89,11 @@ export default function LeadDetailsPage() {
     }
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     if (id) fetchLead();
   }, [id]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const timeline = useMemo(
     () =>
@@ -176,7 +177,6 @@ export default function LeadDetailsPage() {
             <p className="mt-2 text-[var(--text-secondary)]">{lead.companyName}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Badge value={lead.leadStatus || "new"} />
-              <Badge value={`${lead.priority || "medium"} priority`} />
               <Badge value={lead.source || "Website"} />
             </div>
           </div>
@@ -268,14 +268,14 @@ export default function LeadDetailsPage() {
           </div>
         </Panel>
 
-        <Panel title="Activity" icon={<CalendarClock size={18} />}>
+        <Panel title="Timeline" icon={<CalendarClock size={18} />}>
           <div className="md:col-span-2 space-y-4">
             {timeline.length ? timeline.map((item, index) => (
               <div key={`${item.createdAt}-${index}`} className="border-l-2 border-[var(--primary)]/40 pl-4">
                 <p className="text-sm font-medium">{item.message}</p>
                 <p className="mt-1 text-xs text-[var(--text-secondary)]">{new Date(item.createdAt).toLocaleString()}</p>
               </div>
-            )) : <p className="text-sm text-[var(--text-secondary)]">No activity recorded.</p>}
+            )) : <p className="text-sm text-[var(--text-secondary)]">No timeline recorded.</p>}
           </div>
         </Panel>
       </div>

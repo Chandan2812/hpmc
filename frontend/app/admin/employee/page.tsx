@@ -3,13 +3,20 @@
 import EmployeeModal from "@/app/components/CreateEmployeeModal";
 import {
   BriefcaseBusiness,
+  CalendarClock,
+  CheckCircle2,
+  Eye,
   Filter,
+  Mail,
+  MessageCircle,
   Pencil,
+  Phone,
   RotateCcw,
   Search,
   Trash2,
   UserCheck,
   Users,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -19,28 +26,63 @@ interface Employee {
   _id: string;
   name: string;
   email: string;
+  phone?: string;
+  department?: string;
+  role?: string;
+  monthlyTarget?: number;
   active: boolean;
   createdAt: string;
 }
 
+interface LeadRequest {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  companyName?: string;
+  leadStatus?: "new" | "contacted" | "follow-up" | "qualified" | "won" | "lost";
+  marked?: boolean;
+  followUpDate?: string | null;
+  followUpRemark?: string;
+  assignedTo?: {
+    _id: string;
+    name: string;
+    email: string;
+  } | null;
+  createdAt: string;
+  lastActivityAt?: string;
+}
+
 const ITEMS_PER_PAGE = 20;
 
-async function requestEmployee(apiBase: string | undefined) {
-  const res = await fetch(`${apiBase}/employee`, { cache: "no-store" });
-  const result = await res.json();
+async function requestEmployeeCrm(apiBase: string | undefined) {
+  const [employeeRes, leadRes] = await Promise.all([
+    fetch(`${apiBase}/employee`, { cache: "no-store" }),
+    fetch(`${apiBase}/lead`, { cache: "no-store" }),
+  ]);
+  const employeeResult = await employeeRes.json();
+  const leadResult = await leadRes.json();
 
-  if (!res.ok) {
-    throw new Error(result.message || "Failed to fetch agent applications");
+  if (!employeeRes.ok) {
+    throw new Error(employeeResult.message || "Failed to fetch employees");
   }
 
-  return [...(result.employees || [])].sort(
-    (a: Employee, b: Employee) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+  if (!leadRes.ok) {
+    throw new Error(leadResult.message || "Failed to fetch leads");
+  }
+
+  return {
+    employees: [...(employeeResult.employees || [])].sort(
+      (a: Employee, b: Employee) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    ),
+    leads: [...(Array.isArray(leadResult) ? leadResult : [])],
+  };
 }
 
 export default function AdminEmployee() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [leads, setLeads] = useState<LeadRequest[]>([]);
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [selectedDate, setSelectedDate] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -55,6 +97,7 @@ export default function AdminEmployee() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null,
   );
+  const [viewEmployee, setViewEmployee] = useState<Employee | null>(null);
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
@@ -62,9 +105,12 @@ export default function AdminEmployee() {
   useEffect(() => {
     let cancelled = false;
 
-    requestEmployee(API_BASE)
+    requestEmployeeCrm(API_BASE)
       .then((data) => {
-        if (!cancelled) setEmployees(data);
+        if (!cancelled) {
+          setEmployees(data.employees);
+          setLeads(data.leads);
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -152,6 +198,9 @@ export default function AdminEmployee() {
     total: employees.length,
     active: employees.filter((e) => e.active).length,
     inactive: employees.filter((e) => !e.active).length,
+    assignedLeads: leads.filter((lead) => lead.assignedTo).length,
+    followUps: leads.filter((lead) => lead.leadStatus === "follow-up").length,
+    won: leads.filter((lead) => lead.leadStatus === "won").length,
   };
 
   const hasActiveFilters =
@@ -181,7 +230,9 @@ export default function AdminEmployee() {
     try {
       setLoading(true);
       setError("");
-      setEmployees(await requestEmployee(API_BASE));
+      const data = await requestEmployeeCrm(API_BASE);
+      setEmployees(data.employees);
+      setLeads(data.leads);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -204,9 +255,31 @@ export default function AdminEmployee() {
 
       setEmployees((prev) => prev.filter((employee) => employee._id !== id));
       if (selectedEmployee?._id === id) setSelectedEmployee(null);
+      if (viewEmployee?._id === id) setViewEmployee(null);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Delete failed");
     }
+  };
+
+  const getEmployeeLeads = (employeeId: string) =>
+    leads
+      .filter((lead) => lead.assignedTo?._id === employeeId)
+      .sort(
+        (a, b) =>
+          new Date(b.lastActivityAt || b.createdAt).getTime() -
+          new Date(a.lastActivityAt || a.createdAt).getTime(),
+      );
+
+  const getEmployeePipeline = (employeeId: string) => {
+    const assigned = getEmployeeLeads(employeeId);
+    return {
+      total: assigned.length,
+      followUps: assigned.filter((lead) => lead.leadStatus === "follow-up")
+        .length,
+      won: assigned.filter((lead) => lead.leadStatus === "won").length,
+      open: assigned.filter((lead) => !lead.marked && lead.leadStatus !== "won")
+        .length,
+    };
   };
 
   return (
@@ -254,7 +327,7 @@ export default function AdminEmployee() {
           </div>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-6 md:gap-4">
           <StatCard
             label="Total"
             value={stats.total}
@@ -272,6 +345,24 @@ export default function AdminEmployee() {
             value={stats.inactive}
             icon={<UserCheck size={18} />}
             color="violet"
+          />
+          <StatCard
+            label="Assigned Leads"
+            value={stats.assignedLeads}
+            icon={<BriefcaseBusiness size={18} />}
+            color="green"
+          />
+          <StatCard
+            label="Follow Ups"
+            value={stats.followUps}
+            icon={<CalendarClock size={18} />}
+            color="yellow"
+          />
+          <StatCard
+            label="Won"
+            value={stats.won}
+            icon={<CheckCircle2 size={18} />}
+            color="red"
           />
         </div>
 
@@ -458,7 +549,10 @@ export default function AdminEmployee() {
                     <th className="w-[20%] px-2 py-4 text-left text-xs font-semibold text-[var(--text-primary)] sm:px-4 sm:text-sm md:w-auto md:px-5">
                       Status
                     </th>
-                    <th className="w-[20%] px-2 py-4 text-left text-xs font-semibold text-[var(--text-primary)] sm:px-4 sm:text-sm md:w-auto md:px-5">
+                    <th className="hidden w-[20%] px-2 py-4 text-left text-xs font-semibold text-[var(--text-primary)] sm:px-4 sm:text-sm lg:table-cell md:w-auto md:px-5">
+                      Leads
+                    </th>
+                    <th className="hidden xl:table-cell w-[20%] px-2 py-4 text-left text-xs font-semibold text-[var(--text-primary)] sm:px-4 sm:text-sm md:w-auto md:px-5">
                       Created
                     </th>
                     <th className="w-[20%] px-2 py-4 text-left text-xs font-semibold text-[var(--text-primary)] sm:px-4 sm:text-sm md:w-auto md:px-5">
@@ -468,17 +562,26 @@ export default function AdminEmployee() {
                 </thead>
 
                 <tbody>
-                  {currentEmployees.map((employee) => (
+                  {currentEmployees.map((employee) => {
+                    const pipeline = getEmployeePipeline(employee._id);
+
+                    return (
                     <tr
                       key={employee._id}
                       className="border-b border-[var(--border)] transition last:border-b-0 hover:bg-[var(--background-secondary)]"
                     >
                       <td className="px-3 py-4 sm:px-4 md:px-5">
-                        <p className="truncate text-sm font-medium text-[var(--text-primary)] md:text-base">
+                        <button
+                          onClick={() => setViewEmployee(employee)}
+                          className="block max-w-full truncate text-left text-sm font-medium text-[var(--text-primary)] transition hover:text-[var(--primary)] md:text-base"
+                        >
                           {employee.name}
-                        </p>
+                        </button>
                         <p className="mt-1 truncate text-[11px] text-[var(--text-secondary)] sm:text-xs">
                           {employee.email}
+                        </p>
+                        <p className="mt-1 text-[11px] text-[var(--text-secondary)] lg:hidden">
+                          {pipeline.total} leads, {pipeline.followUps} follow-ups
                         </p>
                       </td>
 
@@ -508,7 +611,7 @@ export default function AdminEmployee() {
                           </div>
 
                           <span
-                            className={`text-xs font-medium ${
+                            className={`hidden xl:block text-xs font-medium ${
                               employee.active
                                 ? "text-green-600"
                                 : "text-red-500"
@@ -519,12 +622,33 @@ export default function AdminEmployee() {
                         </button>
                       </td>
 
+                      <td className="hidden px-2 py-4 sm:px-4 lg:table-cell md:px-5">
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          <span className="rounded-full bg-blue-500/10 px-2 py-1 font-semibold text-blue-600">
+                            {pipeline.total} assigned
+                          </span>
+                          <span className="rounded-full bg-amber-500/10 px-2 py-1 font-semibold text-amber-600">
+                            {pipeline.followUps} follow-ups
+                          </span>
+                          <span className="rounded-full bg-green-500/10 px-2 py-1 font-semibold text-green-600">
+                            {pipeline.won} won
+                          </span>
+                        </div>
+                      </td>
+
                       <td className="hidden whitespace-nowrap px-5 py-4 text-xs text-[var(--text-secondary)] xl:table-cell">
                         {new Date(employee.createdAt).toLocaleDateString()}
                       </td>
 
                       <td className="px-2 py-4 sm:px-4 md:px-5">
                         <div className="flex justify-start gap-2">
+                          <button
+                            onClick={() => setViewEmployee(employee)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--primary)] transition hover:bg-[var(--primary)]/10"
+                            title="View Assigned Leads"
+                          >
+                            <Eye size={15} />
+                          </button>
                           <button
                             onClick={() => {
                               setSelectedEmployee(employee);
@@ -546,7 +670,8 @@ export default function AdminEmployee() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -573,7 +698,6 @@ export default function AdminEmployee() {
               </button>
             </div>
           )}
-
         </>
       )}
 
@@ -586,6 +710,155 @@ export default function AdminEmployee() {
         employee={selectedEmployee}
         onSuccess={handleRetry}
       />
+
+      {viewEmployee && (
+        <EmployeeLeadsModal
+          employee={viewEmployee}
+          leads={getEmployeeLeads(viewEmployee._id)}
+          pipeline={getEmployeePipeline(viewEmployee._id)}
+          onClose={() => setViewEmployee(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function EmployeeLeadsModal({
+  employee,
+  leads,
+  pipeline,
+  onClose,
+}: {
+  employee: Employee;
+  leads: LeadRequest[];
+  pipeline: { total: number; followUps: number; won: number; open: number };
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md">
+      <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4 md:px-6">
+          <div>
+            <p className="mb-1 text-xs uppercase tracking-[4px] text-[var(--primary)]">
+              Employee CRM
+            </p>
+            <h2 className="font-serif text-2xl text-[var(--text-primary)] md:text-3xl">
+              {employee.name}
+            </h2>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+              {employee.role || "Sales Executive"} - {employee.email}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)]"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto p-5 md:p-6">
+          <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <MiniStat label="Assigned" value={pipeline.total} />
+            <MiniStat label="Open" value={pipeline.open} />
+            <MiniStat label="Follow Ups" value={pipeline.followUps} />
+            <MiniStat label="Won" value={pipeline.won} />
+          </div>
+
+          {leads.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[var(--border)] p-10 text-center text-[var(--text-secondary)]">
+              No leads assigned to this employee yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {leads.map((lead) => (
+                <div
+                  key={lead._id}
+                  className="rounded-2xl border border-[var(--border)] p-4 transition hover:bg-[var(--background-secondary)]"
+                >
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold text-[var(--text-primary)]">
+                          {lead.name}
+                        </h3>
+                        <span
+                          className={`rounded-full px-2 py-1 text-[11px] font-semibold ${statusClass(lead.leadStatus || "new")}`}
+                        >
+                          {(lead.leadStatus || "new").replace("-", " ")}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
+                            lead.marked
+                              ? "bg-green-500/10 text-green-600"
+                              : "bg-yellow-500/10 text-yellow-600"
+                          }`}
+                        >
+                          {lead.marked ? "Completed" : "Open"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                        {lead.companyName || "No company"}
+                      </p>
+                      {lead.followUpDate && (
+                        <p className="mt-3 text-sm text-[var(--text-primary)]">
+                          Next follow-up:{" "}
+                          {new Date(lead.followUpDate).toLocaleString()}
+                        </p>
+                      )}
+                      {lead.followUpRemark && (
+                        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                          {lead.followUpRemark}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <a
+                        href={`tel:${lead.phone}`}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-green-600 hover:bg-green-500/10"
+                        title="Call"
+                      >
+                        <Phone size={16} />
+                      </a>
+                      <a
+                        href={`mailto:${lead.email}`}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-blue-600 hover:bg-blue-500/10"
+                        title="Email"
+                      >
+                        <Mail size={16} />
+                      </a>
+                      <a
+                        href={`https://wa.me/${lead.phone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="grid h-9 w-9 place-items-center rounded-lg text-emerald-600 hover:bg-emerald-500/10"
+                        title="WhatsApp"
+                      >
+                        <MessageCircle size={16} />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--background-secondary)] p-4">
+      <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-bold text-[var(--text-primary)]">
+        {value}
+      </p>
     </div>
   );
 }
@@ -663,4 +936,15 @@ function StatCard({
       </p>
     </div>
   );
+}
+
+function statusClass(status: NonNullable<LeadRequest["leadStatus"]>) {
+  return {
+    new: "bg-slate-500/10 text-slate-600",
+    contacted: "bg-blue-500/10 text-blue-600",
+    "follow-up": "bg-amber-500/10 text-amber-600",
+    qualified: "bg-violet-500/10 text-violet-600",
+    won: "bg-green-500/10 text-green-600",
+    lost: "bg-red-500/10 text-red-600",
+  }[status];
 }
