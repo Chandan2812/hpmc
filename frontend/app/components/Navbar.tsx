@@ -206,6 +206,10 @@ const companyMenu = [
     name: "CSR Activities",
     link: "/csr",
   },
+  {
+    name: "FAQs",
+    link: "/faq",
+  },
 ];
 
 const serviceSupportMenu = [
