@@ -1,8 +1,6 @@
 "use client";
 import Image from "next/image";
 
-import Link from "next/link";
-
 import { useRef, useState, type MouseEvent } from "react";
 import CTA from "../components/CTA";
 import FloatingContact from "../components/FloatingButton";
@@ -10,7 +8,13 @@ import PopupForm from "../components/Popup";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ScrollToTop from "../components/ScrollToTop";
-import { Play, Pause, ChevronDown } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  HelpCircle,
+  Play,
+  Sparkles,
+} from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 
@@ -313,14 +317,17 @@ const specifications = [
 export default function SingleScrewExtruder() {
   const [openPopup, setOpenPopup] = useState(false);
   const [openPopup2, setOpenPopup2] = useState(false);
-  const [catalogueToDownload, setCatalogueToDownload] = useState("");
+  const [, setCatalogueToDownload] = useState("");
   const [activeImage, setActiveImage] = useState(0);
   const [isZooming, setIsZooming] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
   const [active, setActive] = useState<number | null>(0);
+  const [showAllFaqs, setShowAllFaqs] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
+
+  const displayedFaqs = showAllFaqs ? faqData : faqData.slice(0, 5);
 
   const toggleVideo = async () => {
     if (!videoRef.current) return;
@@ -986,76 +993,161 @@ export default function SingleScrewExtruder() {
             </p>
           </div>
 
-          <div className="space-y-5">
-            {faqData.map((faq, index) => {
-              const isOpen = active === index;
+          <div className="relative">
+            <div className="absolute -inset-x-4 top-10 bottom-0 rounded-[32px] bg-[linear-gradient(180deg,rgba(101,188,79,0.08),rgba(255,255,255,0))] pointer-events-none" />
 
-              return (
-                <div
-                  key={index}
-                  className="
-                  rounded-3xl
-                  border
-                  border-[var(--border)]
-                  bg-[var(--card)]
-                  overflow-hidden
+            <div className="relative overflow-hidden rounded-[30px] border border-[var(--border)] bg-[var(--card)] shadow-[0_24px_70px_rgba(11,18,32,0.08)]">
+              <div className="grid gap-5 border-b border-[var(--border)] bg-white/70 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-7">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)]">
+                    <HelpCircle size={24} />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[3px] text-[var(--primary)]">
+                      Expert Support
+                    </p>
+                    <h3 className="mt-1 text-2xl font-bold text-[var(--text-primary)]">
+                      Quick answers before you enquire
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--text-secondary)]">
+                  <Sparkles size={16} className="text-[var(--primary)]" />
+                  {displayedFaqs.length} of {faqData.length} FAQs
+                </div>
+              </div>
+
+              <div className="divide-y divide-[var(--border)]">
+                {displayedFaqs.map((faq, index) => {
+                  const isOpen = active === index;
+
+                  return (
+                    <div
+                      key={index}
+                      className="
                   transition-all
                   duration-300
-                  hover:shadow-xl
+                  hover:bg-[var(--muted)]
                 "
-                >
-                  <button
-                    onClick={() => setActive(isOpen ? null : index)}
-                    className="
+                    >
+                      <button
+                        onClick={() => setActive(isOpen ? null : index)}
+                        className="
                     w-full
                     flex
                     items-center
                     justify-between
                     gap-5
-                    px-8
-                    py-6
+                    px-5
+                    py-5
+                    sm:px-7
+                    sm:py-6
                     text-left
                   "
-                  >
-                    <h3 className="text-lg lg:text-xl font-semibold text-[var(--text-primary)]">
-                      {faq.question}
-                    </h3>
+                      >
+                        <div className="flex items-start gap-4">
+                          <span
+                            className={`
+                          mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold
+                          transition-all duration-300
+                          ${
+                            isOpen
+                              ? "bg-[var(--primary)] text-white"
+                              : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                          }
+                        `}
+                          >
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
 
-                    <div
-                      className={`
-                      w-10 h-10 rounded-full
+                          <h3 className="text-base font-semibold leading-7 text-[var(--text-primary)] sm:text-lg lg:text-xl">
+                            {faq.question}
+                          </h3>
+                        </div>
+
+                        <div
+                          className={`
+                      w-10 h-10 rounded-full shrink-0
                       flex items-center justify-center
-                      bg-[var(--primary)]/10
+                      border border-[var(--border)]
+                      bg-white
                       transition-all duration-300
-                      ${isOpen ? "rotate-180" : ""}
+                      ${isOpen ? "rotate-180 border-[var(--primary)] text-[var(--primary)]" : "text-[var(--text-secondary)]"}
                     `}
-                    >
-                      <ChevronDown
-                        size={20}
-                        className="text-[var(--primary)]"
-                      />
-                    </div>
-                  </button>
+                        >
+                          <ChevronDown size={20} />
+                        </div>
+                      </button>
 
-                  <div
-                    className={`
+                      <div
+                        className={`
                     grid
                     transition-all
                     duration-500
                     ease-in-out
                     ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}
                   `}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="px-8 pb-7 text-[var(--text-secondary)] leading-8">
-                        {faq.answer}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="px-5 pb-6 pl-[72px] pr-7 text-[var(--text-secondary)] leading-8 sm:px-7 sm:pl-20">
+                            {faq.answer}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
           </div>
+
+          {faqData.length > 5 && (
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={() => setShowAllFaqs(!showAllFaqs)}
+                className="
+                  group
+                  inline-flex
+                  items-center
+                  gap-4
+                  rounded-full
+                  border
+                  border-[var(--primary)]/25
+                  bg-white
+                  px-5
+                  py-3
+                  text-[var(--text-primary)]
+                  shadow-[0_18px_45px_rgba(11,18,32,0.08)]
+                  transition-all
+                  duration-300
+                  hover:-translate-y-1
+                  hover:border-[var(--primary)]
+                  hover:shadow-[0_22px_55px_rgba(101,188,79,0.18)]
+      "
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--primary)] text-white transition-transform duration-300 group-hover:scale-105">
+                  {showAllFaqs ? (
+                    <ChevronDown size={20} className="rotate-180" />
+                  ) : (
+                    <ArrowRight size={20} />
+                  )}
+                </span>
+
+                <span className="text-left">
+                  <span className="block text-xs font-semibold uppercase tracking-[2px] text-[var(--primary)]">
+                    {showAllFaqs ? "Collapse List" : "Explore More"}
+                  </span>
+                  <span className="block text-sm font-bold sm:text-base">
+                    {showAllFaqs
+                      ? "Show fewer questions"
+                      : `View ${faqData.length - displayedFaqs.length} more FAQs`}
+                  </span>
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
