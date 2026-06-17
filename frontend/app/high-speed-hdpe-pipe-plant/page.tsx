@@ -10,7 +10,13 @@ import PopupForm from "../components/Popup";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ScrollToTop from "../components/ScrollToTop";
-import { Play, Pause } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  HelpCircle,
+  Play,
+  Sparkles,
+} from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 
@@ -262,6 +268,85 @@ const specifications = [
   },
 ];
 
+const faqData = [
+  {
+    question: "What is a High Speed HDPE Pipe Plant?",
+    answer:
+      "A High Speed HDPE Pipe Plant is an advanced extrusion system designed for manufacturing HDPE pipes with high productivity, excellent dimensional accuracy, and consistent product quality for industrial, infrastructure, and utility applications.",
+  },
+  {
+    question: "What materials can be processed using this plant?",
+    answer:
+      "The plant is primarily designed for processing HDPE (High Density Polyethylene) materials used in water supply, gas distribution, telecom ducting, irrigation, and industrial piping applications.",
+  },
+  {
+    question:
+      "What is the production capacity of the High Speed HDPE Pipe Plant?",
+    answer:
+      "Depending on the selected model, the plant can achieve output capacities ranging from 550 Kg/hr to 600 Kg/hr while maintaining stable production and superior pipe quality.",
+  },
+  {
+    question: "Which machine models are available?",
+    answer:
+      "HPMC offers High Speed HDPE Pipe Plants in HPMC 45G, HPMC 65G, HPMC 75G, and HPMC 90G configurations to meet different production requirements and pipe sizes.",
+  },
+  {
+    question: "What pipe sizes can be produced?",
+    answer:
+      "The plant is capable of producing HDPE pipes ranging from small utility pipes to large diameter pipes up to 630 mm depending on the machine model and tooling configuration.",
+  },
+  {
+    question: "What is the advantage of the Spiral Type Die Head?",
+    answer:
+      "The Spiral Type Die Head ensures uniform material flow, stable wall thickness, better melt distribution, and superior pipe quality even at high production speeds.",
+  },
+  {
+    question: "How does the PLC Control System improve production?",
+    answer:
+      "The PLC-based control system provides real-time process monitoring, easy parameter adjustment, automated control functions, and improved production efficiency.",
+  },
+  {
+    question: "What are the benefits of the Barrier-Type Screw Design?",
+    answer:
+      "The barrier-type screw improves plasticization efficiency, enhances material mixing, increases output capacity, and ensures consistent melt quality throughout production.",
+  },
+  {
+    question: "What industries use HDPE pipes manufactured by this plant?",
+    answer:
+      "HDPE pipes produced by this plant are widely used in water supply networks, gas distribution systems, agricultural irrigation, telecom ducting, sewage systems, mining operations, and industrial fluid transportation.",
+  },
+  {
+    question: "How does the Vacuum Tank improve pipe quality?",
+    answer:
+      "The vacuum sizing tank ensures accurate pipe dimensions, excellent roundness, stable calibration, and efficient cooling, resulting in high-quality finished products.",
+  },
+  {
+    question: "What is the purpose of the Multiple Arm Haul-Off Unit?",
+    answer:
+      "The haul-off unit provides smooth traction and stable pipe pulling while maintaining pipe roundness and preventing deformation during production.",
+  },
+  {
+    question: "Does the machine support continuous production?",
+    answer:
+      "Yes. The High Speed HDPE Pipe Plant is engineered for continuous operation with reliable performance, high output efficiency, and minimal downtime.",
+  },
+  {
+    question: "Is the machine energy efficient?",
+    answer:
+      "Yes. The plant is designed with optimized drive systems, advanced screw technology, and efficient process controls to reduce energy consumption while maximizing productivity.",
+  },
+  {
+    question: "Does HPMC provide installation and after-sales support?",
+    answer:
+      "Yes. HPMC provides installation, commissioning, operator training, spare parts support, technical assistance, and comprehensive after-sales service.",
+  },
+  {
+    question: "Why choose HPMC High Speed HDPE Pipe Plants?",
+    answer:
+      "HPMC High Speed HDPE Pipe Plants offer high production capacity, advanced extrusion technology, excellent pipe quality, energy-efficient operation, robust construction, and long-term reliability for demanding industrial applications.",
+  },
+];
+
 export default function HighSpeedHDPEPipePlant() {
   const [openPopup, setOpenPopup] = useState(false);
   const [openPopup2, setOpenPopup2] = useState(false);
@@ -269,9 +354,13 @@ export default function HighSpeedHDPEPipePlant() {
   const [activeImage, setActiveImage] = useState(0);
   const [isZooming, setIsZooming] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+  const [active, setActive] = useState<number | null>(0);
+  const [showAllFaqs, setShowAllFaqs] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
+
+  const displayedFaqs = showAllFaqs ? faqData : faqData.slice(0, 5);
 
   const toggleVideo = async () => {
     if (!videoRef.current) return;
@@ -914,6 +1003,183 @@ export default function HighSpeedHDPEPipePlant() {
               </tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-[var(--background)]">
+        <div className="max-w-5xl mx-auto px-5">
+          <div className="text-center mb-16">
+            <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
+              Frequently Asked Questions
+            </span>
+
+            <h2 className="mt-4 text-4xl lg:text-5xl font-bold text-[var(--text-primary)]">
+              Everything About Our
+              <span className="text-[var(--primary)]"> HDPE Pipe Plant</span>
+            </h2>
+
+            <p className="mt-5 text-[var(--text-secondary)] max-w-2xl mx-auto">
+              Find answers to common questions about PVC pipe extrusion, machine
+              specifications, applications, output capacity, installation, and
+              maintenance.
+            </p>
+          </div>
+
+          <div className="relative">
+            <div className="absolute -inset-x-4 top-10 bottom-0 rounded-[32px] bg-[linear-gradient(180deg,rgba(101,188,79,0.08),rgba(255,255,255,0))] pointer-events-none" />
+
+            <div className="relative overflow-hidden rounded-[30px] border border-[var(--border)] bg-[var(--card)] shadow-[0_24px_70px_rgba(11,18,32,0.08)]">
+              <div className="grid gap-5 border-b border-[var(--border)] bg-white/70 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-7">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)]">
+                    <HelpCircle size={24} />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[3px] text-[var(--primary)]">
+                      Expert Support
+                    </p>
+                    <h3 className="mt-1 text-2xl font-bold text-[var(--text-primary)]">
+                      Quick answers before you enquire
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--text-secondary)]">
+                  <Sparkles size={16} className="text-[var(--primary)]" />
+                  {displayedFaqs.length} of {faqData.length} FAQs
+                </div>
+              </div>
+
+              <div className="divide-y divide-[var(--border)]">
+                {displayedFaqs.map((faq, index) => {
+                  const isOpen = active === index;
+
+                  return (
+                    <div
+                      key={index}
+                      className="
+                        transition-all
+                        duration-300
+                        hover:bg-[var(--muted)]
+                      "
+                    >
+                      <button
+                        onClick={() => setActive(isOpen ? null : index)}
+                        className="
+                          w-full
+                          flex
+                          items-center
+                          justify-between
+                          gap-5
+                          px-5
+                          py-5
+                          sm:px-7
+                          sm:py-6
+                          text-left
+                        "
+                      >
+                        <div className="flex items-start gap-4">
+                          <span
+                            className={`
+                                mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold
+                                transition-all duration-300
+                                ${
+                                  isOpen
+                                    ? "bg-[var(--primary)] text-white"
+                                    : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                                }
+                              `}
+                          >
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+
+                          <h3 className="text-base font-semibold leading-7 text-[var(--text-primary)] sm:text-lg lg:text-xl">
+                            {faq.question}
+                          </h3>
+                        </div>
+
+                        <div
+                          className={`
+                            w-10 h-10 rounded-full shrink-0
+                            flex items-center justify-center
+                            border border-[var(--border)]
+                            bg-white
+                            transition-all duration-300
+                            ${isOpen ? "rotate-180 border-[var(--primary)] text-[var(--primary)]" : "text-[var(--text-secondary)]"}
+                          `}
+                        >
+                          <ChevronDown size={20} />
+                        </div>
+                      </button>
+
+                      <div
+                        className={`
+                          grid
+                          transition-all
+                          duration-500
+                          ease-in-out
+                          ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}
+                        `}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="px-5 pb-6 pl-[72px] pr-7 text-[var(--text-secondary)] leading-8 sm:px-7 sm:pl-20">
+                            {faq.answer}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {faqData.length > 5 && (
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={() => setShowAllFaqs(!showAllFaqs)}
+                className="
+                        group
+                        inline-flex
+                        items-center
+                        gap-4
+                        rounded-full
+                        border
+                        border-[var(--primary)]/25
+                        bg-white
+                        px-5
+                        py-3
+                        text-[var(--text-primary)]
+                        shadow-[0_18px_45px_rgba(11,18,32,0.08)]
+                        transition-all
+                        duration-300
+                        hover:-translate-y-1
+                        hover:border-[var(--primary)]
+                        hover:shadow-[0_22px_55px_rgba(101,188,79,0.18)]
+            "
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--primary)] text-white transition-transform duration-300 group-hover:scale-105">
+                  {showAllFaqs ? (
+                    <ChevronDown size={20} className="rotate-180" />
+                  ) : (
+                    <ArrowRight size={20} />
+                  )}
+                </span>
+
+                <span className="text-left">
+                  <span className="block text-xs font-semibold uppercase tracking-[2px] text-[var(--primary)]">
+                    {showAllFaqs ? "Collapse List" : "Explore More"}
+                  </span>
+                  <span className="block text-sm font-bold sm:text-base">
+                    {showAllFaqs
+                      ? "Show fewer questions"
+                      : `View ${faqData.length - displayedFaqs.length} more FAQs`}
+                  </span>
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

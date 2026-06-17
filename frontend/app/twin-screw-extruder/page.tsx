@@ -10,7 +10,14 @@ import PopupForm from "../components/Popup";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ScrollToTop from "../components/ScrollToTop";
-import { Play, Pause } from "lucide-react";
+import {
+  Play,
+  Pause,
+  ChevronDown,
+  Sparkles,
+  HelpCircle,
+  ArrowRight,
+} from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 
@@ -255,6 +262,85 @@ const specifications = [
   },
 ];
 
+const faqData = [
+  {
+    question: "What is a Twin Screw Extruder?",
+    answer:
+      "A Twin Screw Extruder is an advanced plastic processing machine equipped with two intermeshing screws that provide superior mixing, compounding, plasticization, and material dispersion for a wide range of polymers and additives.",
+  },
+  {
+    question:
+      "What materials can be processed using the HPMC Twin Screw Extruder?",
+    answer:
+      "The HPMC Twin Screw Extruder can process PVC compounds, masterbatches, engineering plastics, filled polymers, recycled materials, WPC compounds, and various thermoplastic formulations.",
+  },
+  {
+    question: "What are the main applications of a Twin Screw Extruder?",
+    answer:
+      "Twin Screw Extruders are widely used for PVC compounding, masterbatch production, polymer blending, filler incorporation, plastic recycling, cable compounds, and engineering plastic processing.",
+  },
+  {
+    question: "What is the production capacity of the Twin Screw Extruder?",
+    answer:
+      "Production capacity varies depending on the model and material being processed. HPMC Twin Screw Extruders are designed to deliver high throughput with consistent product quality and efficient energy utilization.",
+  },
+  {
+    question: "Why is a Twin Screw Extruder preferred for compounding?",
+    answer:
+      "The co-rotating twin screw design provides superior distributive and dispersive mixing, ensuring uniform additive distribution, excellent melt quality, and consistent compound properties.",
+  },
+  {
+    question: "Can the machine handle high filler loading applications?",
+    answer:
+      "Yes. HPMC Twin Screw Extruders are engineered to process formulations with high filler loading, including calcium carbonate, talc, glass fiber, and other reinforcing materials.",
+  },
+  {
+    question: "What are the advantages of co-rotating twin screw technology?",
+    answer:
+      "Co-rotating twin screw technology offers better mixing efficiency, improved material dispersion, higher output rates, reduced processing time, and excellent process stability compared to conventional systems.",
+  },
+  {
+    question: "Is the screw configuration customizable?",
+    answer:
+      "Yes. The modular screw design allows customization of screw elements and configurations to meet specific processing requirements and material formulations.",
+  },
+  {
+    question: "Can the Twin Screw Extruder be used for plastic recycling?",
+    answer:
+      "Yes. The machine is highly suitable for recycling applications, enabling efficient reprocessing, homogenization, filtration, and pelletizing of recycled plastic materials.",
+  },
+  {
+    question: "How energy efficient is the HPMC Twin Screw Extruder?",
+    answer:
+      "The machine is designed with optimized drive systems, advanced temperature control, and efficient screw geometry to maximize productivity while minimizing energy consumption.",
+  },
+  {
+    question: "Does HPMC provide installation and technical support?",
+    answer:
+      "Yes. HPMC offers complete installation, commissioning, operator training, technical assistance, spare parts support, and after-sales service to ensure smooth operation.",
+  },
+  {
+    question: "Which industries use Twin Screw Extruders?",
+    answer:
+      "Twin Screw Extruders are widely used in plastics processing, automotive, packaging, cable manufacturing, construction materials, polymer compounding, masterbatch production, and recycling industries.",
+  },
+  {
+    question: "What maintenance is required for a Twin Screw Extruder?",
+    answer:
+      "Routine maintenance includes inspection of screw elements, barrel segments, gearbox lubrication, heating and cooling systems, electrical components, and regular cleaning to maintain optimal performance.",
+  },
+  {
+    question: "Can the machine process glass fiber reinforced compounds?",
+    answer:
+      "Yes. HPMC Twin Screw Extruders are designed to process glass fiber reinforced compounds while ensuring proper fiber dispersion and minimal fiber breakage.",
+  },
+  {
+    question: "Why choose HPMC Twin Screw Extruders?",
+    answer:
+      "HPMC Twin Screw Extruders deliver superior mixing performance, high productivity, excellent process flexibility, energy efficiency, reliable operation, and long service life for demanding compounding applications.",
+  },
+];
+
 export default function TwinScrewExtruder() {
   const [openPopup, setOpenPopup] = useState(false);
   const [openPopup2, setOpenPopup2] = useState(false);
@@ -263,8 +349,13 @@ export default function TwinScrewExtruder() {
   const [isZooming, setIsZooming] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
 
+  const [active, setActive] = useState<number | null>(0);
+  const [showAllFaqs, setShowAllFaqs] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
+
+  const displayedFaqs = showAllFaqs ? faqData : faqData.slice(0, 5);
 
   const toggleVideo = async () => {
     if (!videoRef.current) return;
@@ -910,6 +1001,186 @@ export default function TwinScrewExtruder() {
               </tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-[var(--background)]">
+        <div className="max-w-5xl mx-auto px-5">
+          <div className="text-center mb-16">
+            <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
+              Frequently Asked Questions
+            </span>
+
+            <h2 className="mt-4 text-4xl lg:text-5xl font-bold text-[var(--text-primary)]">
+              Everything About Our
+              <span className="text-[var(--primary)]">
+                {" "}
+                Twin Screw Extruder
+              </span>
+            </h2>
+
+            <p className="mt-5 text-[var(--text-secondary)] max-w-2xl mx-auto">
+              Find answers to common questions about PVC pipe extrusion, machine
+              specifications, applications, output capacity, installation, and
+              maintenance.
+            </p>
+          </div>
+
+          <div className="relative">
+            <div className="absolute -inset-x-4 top-10 bottom-0 rounded-[32px] bg-[linear-gradient(180deg,rgba(101,188,79,0.08),rgba(255,255,255,0))] pointer-events-none" />
+
+            <div className="relative overflow-hidden rounded-[30px] border border-[var(--border)] bg-[var(--card)] shadow-[0_24px_70px_rgba(11,18,32,0.08)]">
+              <div className="grid gap-5 border-b border-[var(--border)] bg-white/70 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-7">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)]">
+                    <HelpCircle size={24} />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[3px] text-[var(--primary)]">
+                      Expert Support
+                    </p>
+                    <h3 className="mt-1 text-2xl font-bold text-[var(--text-primary)]">
+                      Quick answers before you enquire
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--text-secondary)]">
+                  <Sparkles size={16} className="text-[var(--primary)]" />
+                  {displayedFaqs.length} of {faqData.length} FAQs
+                </div>
+              </div>
+
+              <div className="divide-y divide-[var(--border)]">
+                {displayedFaqs.map((faq, index) => {
+                  const isOpen = active === index;
+
+                  return (
+                    <div
+                      key={index}
+                      className="
+                        transition-all
+                        duration-300
+                        hover:bg-[var(--muted)]
+                      "
+                    >
+                      <button
+                        onClick={() => setActive(isOpen ? null : index)}
+                        className="
+                          w-full
+                          flex
+                          items-center
+                          justify-between
+                          gap-5
+                          px-5
+                          py-5
+                          sm:px-7
+                          sm:py-6
+                          text-left
+                        "
+                      >
+                        <div className="flex items-start gap-4">
+                          <span
+                            className={`
+                                mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold
+                                transition-all duration-300
+                                ${
+                                  isOpen
+                                    ? "bg-[var(--primary)] text-white"
+                                    : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                                }
+                              `}
+                          >
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+
+                          <h3 className="text-base font-semibold leading-7 text-[var(--text-primary)] sm:text-lg lg:text-xl">
+                            {faq.question}
+                          </h3>
+                        </div>
+
+                        <div
+                          className={`
+                            w-10 h-10 rounded-full shrink-0
+                            flex items-center justify-center
+                            border border-[var(--border)]
+                            bg-white
+                            transition-all duration-300
+                            ${isOpen ? "rotate-180 border-[var(--primary)] text-[var(--primary)]" : "text-[var(--text-secondary)]"}
+                          `}
+                        >
+                          <ChevronDown size={20} />
+                        </div>
+                      </button>
+
+                      <div
+                        className={`
+                          grid
+                          transition-all
+                          duration-500
+                          ease-in-out
+                          ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}
+                        `}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="px-5 pb-6 pl-[72px] pr-7 text-[var(--text-secondary)] leading-8 sm:px-7 sm:pl-20">
+                            {faq.answer}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {faqData.length > 5 && (
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={() => setShowAllFaqs(!showAllFaqs)}
+                className="
+                        group
+                        inline-flex
+                        items-center
+                        gap-4
+                        rounded-full
+                        border
+                        border-[var(--primary)]/25
+                        bg-white
+                        px-5
+                        py-3
+                        text-[var(--text-primary)]
+                        shadow-[0_18px_45px_rgba(11,18,32,0.08)]
+                        transition-all
+                        duration-300
+                        hover:-translate-y-1
+                        hover:border-[var(--primary)]
+                        hover:shadow-[0_22px_55px_rgba(101,188,79,0.18)]
+            "
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--primary)] text-white transition-transform duration-300 group-hover:scale-105">
+                  {showAllFaqs ? (
+                    <ChevronDown size={20} className="rotate-180" />
+                  ) : (
+                    <ArrowRight size={20} />
+                  )}
+                </span>
+
+                <span className="text-left">
+                  <span className="block text-xs font-semibold uppercase tracking-[2px] text-[var(--primary)]">
+                    {showAllFaqs ? "Collapse List" : "Explore More"}
+                  </span>
+                  <span className="block text-sm font-bold sm:text-base">
+                    {showAllFaqs
+                      ? "Show fewer questions"
+                      : `View ${faqData.length - displayedFaqs.length} more FAQs`}
+                  </span>
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
