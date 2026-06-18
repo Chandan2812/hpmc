@@ -113,7 +113,19 @@ const leadSchema = new mongoose.Schema(
       {
         type: {
           type: String,
-          enum: ["created", "assigned", "status", "note", "follow-up", "marked"],
+          enum: [
+            "created",
+            "assigned",
+            "status",
+            "note",
+            "follow-up",
+            "marked",
+            "call",
+            "whatsapp",
+            "email",
+            "site-visit",
+            "quotation",
+          ],
           required: true,
         },
         message: {

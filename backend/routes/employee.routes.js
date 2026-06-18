@@ -11,8 +11,10 @@ const {
   deleteEmployee,
   employeeLogin,
   getMyLeads,
+  getMyWorkDesk,
   updateLeadStatus,
   addLeadNote,
+  recordLeadAction,
   getLeadById,
   updateFollowUp,
   getMyProfile,
@@ -25,6 +27,8 @@ router.post("/", createEmployee);
 router.get("/", getEmployees);
 
 router.get("/my-leads", employeeAuth, getMyLeads);
+
+router.get("/me/work-desk", employeeAuth, getMyWorkDesk);
 
 router.get("/me/profile", employeeAuth, getMyProfile);
 
@@ -39,6 +43,8 @@ router.delete("/:id", deleteEmployee);
 router.patch("/:id/lead-status", employeeAuth, updateLeadStatus);
 
 router.post("/:id/note", employeeAuth, addLeadNote);
+
+router.post("/:id/action", employeeAuth, recordLeadAction);
 
 router.patch("/:id/follow-up", employeeAuth, updateFollowUp);
 

@@ -5,6 +5,129 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { EmailCampaignsApi } = require("sib-api-v3-sdk");
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const startOfToday = () => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const endOfToday = () => {
+  const date = startOfToday();
+  date.setHours(23, 59, 59, 999);
+  return date;
+};
+
+const daysSince = (date) => {
+  if (!date) return null;
+  return Math.max(
+    0,
+    Math.floor((Date.now() - new Date(date).getTime()) / DAY_MS),
+  );
+};
+
+const getAgingTone = (lead) => {
+  const leadAgeDays = daysSince(lead.createdAt) || 0;
+  const lastContactDays =
+    daysSince(lead.lastActivityAt || lead.assignedAt || lead.createdAt) || 0;
+
+  if (lastContactDays >= 5 || leadAgeDays >= 15) return "red";
+  if (lastContactDays >= 2 || leadAgeDays >= 7) return "yellow";
+  return "green";
+};
+
+const decorateLead = (lead) => {
+  const plainLead =
+    typeof lead.toObject === "function" ? lead.toObject() : lead;
+  const lastActivityAt =
+    plainLead.lastActivityAt || plainLead.assignedAt || plainLead.createdAt;
+  const lastFollowUpActivity = [...(plainLead.activityLog || [])]
+    .reverse()
+    .find((item) => item.type === "follow-up");
+
+  return {
+    ...plainLead,
+    aging: {
+      leadAgeDays: daysSince(plainLead.createdAt) || 0,
+      lastContactDays: daysSince(lastActivityAt) || 0,
+      noFollowUpDays: lastFollowUpActivity
+        ? daysSince(lastFollowUpActivity.createdAt) || 0
+        : daysSince(plainLead.assignedAt || plainLead.createdAt) || 0,
+      tone: getAgingTone(plainLead),
+    },
+  };
+};
+
+const buildWorkDesk = (leads) => {
+  const todayStart = startOfToday().getTime();
+  const todayEnd = endOfToday().getTime();
+  const openLeads = leads.filter(
+    (lead) => !lead.marked && !["won", "lost"].includes(lead.leadStatus),
+  );
+  const followUps = openLeads.filter((lead) => lead.followUpDate);
+  const dueToday = followUps.filter((lead) => {
+    const time = new Date(lead.followUpDate).getTime();
+    return time >= todayStart && time <= todayEnd;
+  });
+  const overdue = followUps.filter(
+    (lead) => new Date(lead.followUpDate).getTime() < todayStart,
+  );
+  const newLeads = openLeads.filter(
+    (lead) => (lead.leadStatus || "new") === "new",
+  );
+  const siteVisits = openLeads.filter(
+    (lead) =>
+      (lead.products || []).some((product) =>
+        product.toLowerCase().includes("site visit"),
+      ) || (lead.message || "").toLowerCase().includes("site visit"),
+  );
+  const quotationPending = openLeads.filter(
+    (lead) =>
+      ["qualified", "contacted"].includes(lead.leadStatus) &&
+      !(lead.activityLog || []).some((item) => item.type === "quotation"),
+  );
+
+  const priorityLeads = [
+    ...overdue,
+    ...dueToday,
+    ...newLeads,
+    ...quotationPending,
+    ...siteVisits,
+  ]
+    .filter(
+      (lead, index, collection) =>
+        collection.findIndex(
+          (item) => String(item._id) === String(lead._id),
+        ) === index,
+    )
+    .sort((a, b) => {
+      const toneRank = { red: 0, yellow: 1, green: 2 };
+      const aTone = getAgingTone(a);
+      const bTone = getAgingTone(b);
+      if (toneRank[aTone] !== toneRank[bTone])
+        return toneRank[aTone] - toneRank[bTone];
+      return (
+        new Date(a.followUpDate || a.createdAt).getTime() -
+        new Date(b.followUpDate || b.createdAt).getTime()
+      );
+    })
+    .slice(0, 12)
+    .map(decorateLead);
+
+  return {
+    summary: {
+      followUpsDue: dueToday.length,
+      overdue: overdue.length,
+      newLeads: newLeads.length,
+      siteVisits: siteVisits.length,
+      quotationPending: quotationPending.length,
+      openLeads: openLeads.length,
+    },
+    priorityLeads,
+  };
+};
+
 // Create Employee
 exports.createEmployee = async (req, res) => {
   try {
@@ -102,8 +225,16 @@ exports.getEmployeeById = async (req, res) => {
 // Update Employee
 exports.updateEmployee = async (req, res) => {
   try {
-    const { name, email, active, password, phone, department, role, monthlyTarget } =
-      req.body;
+    const {
+      name,
+      email,
+      active,
+      password,
+      phone,
+      department,
+      role,
+      monthlyTarget,
+    } = req.body;
 
     const existingEmployee = await Employee.findOne({
       email,
@@ -308,11 +439,12 @@ exports.getMyLeads = async (req, res) => {
     })
       .populate("assignedTo", "name email")
       .populate("notes.createdBy", "name email")
+      .populate("activityLog.employee", "name email")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      leads,
+      leads: leads.map(decorateLead),
     });
   } catch (error) {
     console.error(error);
@@ -352,19 +484,20 @@ exports.updateLeadStatus = async (req, res) => {
       });
     }
 
+    const previousStatus = lead.leadStatus || "new";
     lead.leadStatus = leadStatus;
     lead.lastActivityAt = new Date();
     lead.activityLog.push({
       type: "status",
       employee: req.employee.id,
-      message: `Status changed to ${leadStatus}`,
+      message: `Status changed: ${previousStatus} -> ${leadStatus}`,
     });
 
     await lead.save();
 
     res.status(200).json({
       success: true,
-      lead,
+      lead: decorateLead(lead),
     });
   } catch (error) {
     console.error(error);
@@ -413,11 +546,131 @@ exports.addLeadNote = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      lead,
+      lead: decorateLead(lead),
     });
   } catch (error) {
     console.error(error);
 
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+exports.recordLeadAction = async (req, res) => {
+  try {
+    const { actionType, note, followUpDate, followUpRemark, leadStatus } =
+      req.body;
+    const allowedActions = [
+      "call",
+      "whatsapp",
+      "email",
+      "note",
+      "follow-up",
+      "site-visit",
+      "quotation",
+    ];
+
+    if (!allowedActions.includes(actionType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid action type",
+      });
+    }
+
+    const lead = await getAssignedLead(req.params.id, req.employee.id);
+
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found or not assigned to you",
+      });
+    }
+
+    const cleanNote = note && note.trim();
+    const previousStatus = lead.leadStatus || "new";
+    let message = cleanNote || "";
+
+    if (actionType === "note") {
+      if (!cleanNote) {
+        return res.status(400).json({
+          success: false,
+          message: "Note text is required",
+        });
+      }
+
+      lead.notes.push({
+        text: cleanNote,
+        createdBy: req.employee.id,
+      });
+      message = cleanNote;
+    }
+
+    if (actionType === "follow-up") {
+      if (!followUpDate) {
+        return res.status(400).json({
+          success: false,
+          message: "Follow-up date is required",
+        });
+      }
+
+      lead.followUpDate = followUpDate;
+      lead.followUpRemark = followUpRemark || cleanNote || "";
+      lead.leadStatus = "follow-up";
+      message = `Follow-up scheduled: ${new Date(followUpDate).toLocaleString("en-IN")}`;
+      if (lead.followUpRemark) message += ` - ${lead.followUpRemark}`;
+    }
+
+    if (["call", "whatsapp", "email"].includes(actionType)) {
+      if (previousStatus === "new") {
+        lead.leadStatus = "contacted";
+      }
+      const label = {
+        call: "Call completed",
+        whatsapp: "WhatsApp message sent",
+        email: "Email sent",
+      }[actionType];
+      message = cleanNote ? `${label}: ${cleanNote}` : label;
+    }
+
+    if (actionType === "site-visit") {
+      message = cleanNote || "Site visit coordination updated";
+    }
+
+    if (actionType === "quotation") {
+      if (!["won", "lost"].includes(lead.leadStatus)) {
+        lead.leadStatus = leadStatus || "qualified";
+      }
+      message = cleanNote || "Quotation pending / sent update recorded";
+    }
+
+    lead.lastActivityAt = new Date();
+    lead.activityLog.push({
+      type: actionType,
+      employee: req.employee.id,
+      message,
+    });
+
+    if (previousStatus !== lead.leadStatus) {
+      lead.activityLog.push({
+        type: "status",
+        employee: req.employee.id,
+        message: `Status changed: ${previousStatus} -> ${lead.leadStatus}`,
+      });
+    }
+
+    await lead.save();
+    await lead.populate("assignedTo", "name email");
+    await lead.populate("notes.createdBy", "name email");
+    await lead.populate("activityLog.employee", "name email");
+
+    res.status(200).json({
+      success: true,
+      lead: decorateLead(lead),
+    });
+  } catch (error) {
+    console.error("Record Lead Action Error:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -490,7 +743,7 @@ exports.updateFollowUp = async (req, res) => {
 
     res.json({
       success: true,
-      lead,
+      lead: decorateLead(lead),
     });
   } catch (error) {
     console.error("Update Follow Up Error:", error);
@@ -501,9 +754,50 @@ exports.updateFollowUp = async (req, res) => {
   }
 };
 
+exports.getMyWorkDesk = async (req, res) => {
+  try {
+    const leads = await Lead.find({
+      assignedTo: req.employee.id,
+    })
+      .populate("assignedTo", "name email")
+      .populate("notes.createdBy", "name email")
+      .populate("activityLog.employee", "name email")
+      .sort({ lastActivityAt: 1, createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      ...buildWorkDesk(leads),
+      recentActivity: leads
+        .flatMap((lead) =>
+          (lead.activityLog || []).map((activity) => ({
+            ...activity.toObject(),
+            lead: {
+              _id: lead._id,
+              name: lead.name,
+              companyName: lead.companyName,
+            },
+          })),
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )
+        .slice(0, 12),
+    });
+  } catch (error) {
+    console.error("Get My Work Desk Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
 exports.getMyProfile = async (req, res) => {
   try {
-    const employee = await Employee.findById(req.employee.id).select("-password");
+    const employee = await Employee.findById(req.employee.id).select(
+      "-password",
+    );
 
     if (!employee) {
       return res.status(404).json({
@@ -520,11 +814,15 @@ exports.getMyProfile = async (req, res) => {
       employee,
       stats: {
         assigned: leads.length,
-        contacted: leads.filter((lead) => lead.leadStatus === "contacted").length,
-        followUps: leads.filter((lead) => lead.leadStatus === "follow-up").length,
+        contacted: leads.filter((lead) => lead.leadStatus === "contacted")
+          .length,
+        followUps: leads.filter((lead) => lead.leadStatus === "follow-up")
+          .length,
         won,
         lost: leads.filter((lead) => lead.leadStatus === "lost").length,
-        conversion: leads.length ? Number(((won / leads.length) * 100).toFixed(1)) : 0,
+        conversion: leads.length
+          ? Number(((won / leads.length) * 100).toFixed(1))
+          : 0,
       },
     });
   } catch (error) {

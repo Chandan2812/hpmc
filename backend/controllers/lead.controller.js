@@ -3,6 +3,41 @@ const Employee = require("../models/employee.model");
 const sendEmail = require("../utils/sendEmail");
 
 const otpStore = new Map(); // temporary in-memory storage
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const daysSince = (date) => {
+  if (!date) return null;
+  return Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / DAY_MS));
+};
+
+const getAgingTone = (lead) => {
+  const leadAgeDays = daysSince(lead.createdAt) || 0;
+  const lastContactDays = daysSince(lead.lastActivityAt || lead.assignedAt || lead.createdAt) || 0;
+
+  if (lastContactDays >= 5 || leadAgeDays >= 15) return "red";
+  if (lastContactDays >= 2 || leadAgeDays >= 7) return "yellow";
+  return "green";
+};
+
+const decorateLead = (lead) => {
+  const plainLead = typeof lead.toObject === "function" ? lead.toObject() : lead;
+  const lastActivityAt = plainLead.lastActivityAt || plainLead.assignedAt || plainLead.createdAt;
+  const lastFollowUpActivity = [...(plainLead.activityLog || [])]
+    .reverse()
+    .find((item) => item.type === "follow-up");
+
+  return {
+    ...plainLead,
+    aging: {
+      leadAgeDays: daysSince(plainLead.createdAt) || 0,
+      lastContactDays: daysSince(lastActivityAt) || 0,
+      noFollowUpDays: lastFollowUpActivity
+        ? daysSince(lastFollowUpActivity.createdAt) || 0
+        : daysSince(plainLead.assignedAt || plainLead.createdAt) || 0,
+      tone: getAgingTone(plainLead),
+    },
+  };
+};
 
 /* ============================
    SEND OTP
@@ -103,6 +138,12 @@ exports.verifyOTP = async (req, res) => {
     const newLead = new Lead({
       ...record.data,
       verified: true,
+      activityLog: [
+        {
+          type: "created",
+          message: "Lead created from website inquiry",
+        },
+      ],
     });
 
     await newLead.save();
@@ -172,10 +213,50 @@ exports.getAllLeads = async (req, res) => {
       .populate("notes.createdBy", "name email")
       .populate("activityLog.employee", "name email")
       .sort({ createdAt: -1 });
-    res.status(200).json(leads);
+    res.status(200).json(leads.map(decorateLead));
   } catch (err) {
     console.error("Error fetching leads:", err);
     res.status(500).json({ message: "Server error while fetching leads." });
+  }
+};
+
+exports.getAllLeadActivity = async (req, res) => {
+  try {
+    const leads = await Lead.find()
+      .select("name companyName phone email leadStatus assignedTo activityLog createdAt lastActivityAt")
+      .populate("assignedTo", "name email")
+      .populate("activityLog.employee", "name email")
+      .sort({ lastActivityAt: -1, createdAt: -1 });
+
+    const activity = leads
+      .flatMap((lead) =>
+        (lead.activityLog || []).map((item) => ({
+          ...item.toObject(),
+          lead: {
+            _id: lead._id,
+            name: lead.name,
+            companyName: lead.companyName,
+            phone: lead.phone,
+            email: lead.email,
+            leadStatus: lead.leadStatus,
+            assignedTo: lead.assignedTo,
+            aging: decorateLead(lead).aging,
+          },
+        })),
+      )
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 100);
+
+    res.status(200).json({
+      success: true,
+      activity,
+    });
+  } catch (error) {
+    console.error("Error fetching lead activity:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching lead activity.",
+    });
   }
 };
 
@@ -210,7 +291,7 @@ exports.markLead = async (req, res) => {
 
     res.status(200).json({
       message: "Lead updated successfully.",
-      lead,
+      lead: decorateLead(lead),
     });
   } catch (err) {
     console.error("Error updating lead:", err);
@@ -286,10 +367,11 @@ exports.assignLead = async (req, res) => {
 
     await lead.save();
     await lead.populate("assignedTo", "name email");
+    await lead.populate("activityLog.employee", "name email");
 
     res.status(200).json({
       success: true,
-      lead,
+      lead: decorateLead(lead),
     });
   } catch (error) {
     console.error(error);
