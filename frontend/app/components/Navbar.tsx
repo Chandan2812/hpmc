@@ -418,7 +418,7 @@ export default function Navbar() {
                       <Link
                         key={item.link}
                         href={item.link}
-                        className={`block px-4 py-2 transition ${
+                        className={`block px-4 py-1 transition ${
                           pathname === item.link
                             ? "bg-[var(--muted)] text-[var(--primary)]"
                             : "hover:bg-[var(--muted)] text-[var(--text-secondary)]"
@@ -461,7 +461,7 @@ export default function Navbar() {
                       onMouseEnter={() => setActiveDropdown(index)}
                     >
                       {/* LEFT */}
-                      <div className="flex items-center justify-between px-4 py-2 hover:bg-[var(--muted)] cursor-pointer transition">
+                      <div className="flex items-center justify-between px-4 py-1 hover:bg-[var(--muted)] cursor-pointer transition">
                         <span className="text-[var(--text-secondary)] font-medium">
                           {item.title}
                         </span>
@@ -479,7 +479,7 @@ export default function Navbar() {
                             <Link
                               href={child.link}
                               key={i}
-                              className="block px-4 py-3 hover:bg-[var(--muted)] hover:text-[var(--primary)] transition text-[var(--text-secondary)]"
+                              className="block px-4 py-1 hover:bg-[var(--muted)] hover:text-[var(--primary)] transition text-[var(--text-secondary)]"
                             >
                               {child.name}
                             </Link>
@@ -513,7 +513,7 @@ export default function Navbar() {
                     <Link
                       key={item.link}
                       href={item.link}
-                      className={`block px-4 py-2 transition ${
+                      className={`block px-4 py-1 transition ${
                         pathname === item.link
                           ? "bg-[var(--muted)] text-[var(--primary)]"
                           : "hover:bg-[var(--muted)] text-[var(--text-secondary)]"
@@ -585,7 +585,7 @@ export default function Navbar() {
                       onMouseEnter={() => setActiveDropdown(index)}
                     >
                       {/* LEFT */}
-                      <div className="flex items-center justify-between px-4 py-2 hover:bg-[var(--muted)] cursor-pointer transition">
+                      <div className="flex items-center justify-between px-4 py-1 hover:bg-[var(--muted)] cursor-pointer transition">
                         <span className="text-[var(--text-secondary)] font-medium">
                           {item.title}
                         </span>
@@ -603,7 +603,7 @@ export default function Navbar() {
                             <Link
                               href={child.link}
                               key={i}
-                              className="block px-4 py-3 hover:bg-[var(--muted)] hover:text-[var(--primary)] transition text-[var(--text-secondary)]"
+                              className="block px-4 py-1 hover:bg-[var(--muted)] hover:text-[var(--primary)] transition text-[var(--text-secondary)]"
                             >
                               {child.name}
                             </Link>
