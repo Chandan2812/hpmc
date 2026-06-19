@@ -638,15 +638,9 @@ function LeadModal({
                     </option>
                   ))}
               </select>
-              <button
-                onClick={() => onMark(lead._id, !lead.marked)}
-                className="mt-4 h-11 w-full rounded-xl bg-[var(--primary)] font-medium text-white"
-              >
-                {lead.marked ? "Reopen Lead" : "Mark Completed"}
-              </button>
             </section>
 
-            <section className="rounded-2xl border border-[var(--border)] p-5">
+            <section className="rounded-2xl max-h-96 overflow-auto border border-[var(--border)] p-5">
               <h3 className="mb-4 font-semibold">Timeline</h3>
               <div className="space-y-4">
                 {timeline.length ? (
