@@ -13,7 +13,7 @@ import ScrollToTop from "../components/ScrollToTop";
 
 const milestones = [
   {
-    year: "1971",
+    year: "1972",
     title: "Company Founded",
     desc: "Started operations with a vision to serve the plastics industry.",
   },

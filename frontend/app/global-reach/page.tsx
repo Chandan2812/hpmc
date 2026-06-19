@@ -114,9 +114,7 @@ export default function GlobalReach() {
             </div>
 
             <div>
-              <h3 className="text-7xl font-black text-[var(--primary)]">
-                12K+
-              </h3>
+              <h3 className="text-7xl font-black text-[var(--primary)]">1K+</h3>
               <p className="text-white text-xl mt-3">Machines Installed</p>
             </div>
 

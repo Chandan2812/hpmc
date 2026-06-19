@@ -322,7 +322,7 @@ const faqItems = [
 const categoryStats = [
   { value: "50+", label: "Years Experience" },
   { value: "1000+", label: "Installations" },
-  { value: "80+", label: "Countries Served" },
+  { value: "25+", label: "Countries Served" },
   { value: "24/7", label: "Support Focus" },
 ];
 

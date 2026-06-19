@@ -46,7 +46,7 @@ export default function FloatingContact() {
 
             {/* WhatsApp */}
             <a
-              href="https://api.whatsapp.com/send?phone=91123123123"
+              href="https://wa.me/919560596392"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 border-b px-6 py-4 transition-all duration-300 hover:bg-[var(--muted)]"
@@ -87,7 +87,7 @@ export default function FloatingContact() {
 
             {/* Call */}
             <a
-              href="tel:+918800818156"
+              href="tel:+919560596392"
               className="flex items-center gap-4 border-b px-6 py-4 transition-all duration-300 hover:bg-[var(--muted)]"
               style={{
                 borderColor: "var(--border)",
@@ -119,7 +119,7 @@ export default function FloatingContact() {
                     color: "var(--text-secondary)",
                   }}
                 >
-                  +91 1231231213
+                  +91 95605 96392
                 </p>
               </div>
             </a>
@@ -228,7 +228,7 @@ export default function FloatingContact() {
         >
           {/* WhatsApp */}
           <a
-            href="https://api.whatsapp.com/send?phone=91123123123"
+            href="https://wa.me/919560596392"
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-1 items-center justify-center gap-2 py-4 font-medium"
@@ -242,7 +242,7 @@ export default function FloatingContact() {
 
           {/* Call */}
           <a
-            href="tel:+91123123123"
+            href="tel:+919560596392"
             className="flex flex-1 items-center justify-center gap-2 py-4 font-medium text-white"
             style={{
               background: "var(--primary)",

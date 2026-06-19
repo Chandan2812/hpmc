@@ -92,8 +92,7 @@ const Contact = () => {
                 <h3 className="text-xl font-semibold mb-3">Address</h3>
 
                 <p className="text-[var(--text-secondary)]">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Quam,
-                  repellendus.
+                  5, Category II, DSIDC Industrial Area Nangloi, Delhi-110041
                 </p>
               </div>
               <div className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all">
@@ -103,9 +102,7 @@ const Contact = () => {
 
                 <h3 className="text-xl font-semibold mb-3">Call Us</h3>
 
-                <p className="text-[var(--text-secondary)]">+91 9876543210</p>
-
-                <p className="text-[var(--text-secondary)]">0987 654 3210</p>
+                <p className="text-[var(--text-secondary)]">+91 95605 96392</p>
               </div>
               <div className="bg-[var(--card)] border border-[var(--border)] rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all">
                 <div className="w-16 h-16 rounded-2xl bg-[#65BC4F]/10 flex items-center justify-center mb-6">
@@ -114,14 +111,19 @@ const Contact = () => {
 
                 <h3 className="text-xl font-semibold mb-3">Email</h3>
 
-                <p className="text-[var(--text-secondary)]">info@company.com</p>
+                <p className="text-[var(--text-secondary)]">
+                  <a href="mailto:info@hindustanplastics.com">
+                    {" "}
+                    info@hindustanplastics.com
+                  </a>
+                </p>
               </div>
             </div>
           </div>
         </section>
 
         <section className="py-24 bg-[var(--muted)]">
-          <div className="max-w-5xl mx-auto px-5 lg:px-8">
+          <div className="max-w-6xl mx-auto px-5 lg:px-8">
             <div className="text-center mb-14">
               <span className="text-[var(--primary)] uppercase tracking-[3px] text-sm font-semibold">
                 Send Inquiry
@@ -145,11 +147,13 @@ const Contact = () => {
         {/* ================= MAP ================= */}
         <section className="relative h-[420px]" data-aos="zoom-in">
           <iframe
-            src="https://maps.google.com/maps?q=Delhi&t=&z=13&ie=UTF8&iwloc=&output=embed"
-            width="600"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d28004.302929406225!2d77.05717023157618!3d28.673552932641325!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0453ffffffff%3A0xf6fda601bfcff24d!2sHindustan%20Plastic%20And%20Machine%20Corporation!5e0!3m2!1sen!2sin!4v1781852888044!5m2!1sen!2sin"
+            width="100%"
             height="450"
+            style={{ border: 0 }}
+            allowFullScreen
             loading="lazy"
-            className="w-full"
+            referrerPolicy="no-referrer-when-downgrade"
           />
         </section>
         <CTA />

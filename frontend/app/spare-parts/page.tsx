@@ -128,7 +128,10 @@ export default function SpareParts() {
                     </span>
 
                     <span className="text-[var(--primary)]">
-                      info@company.com
+                      <a href="mailto:info@hindustanplastics.com">
+                        {" "}
+                        info@hindustanplastics.com
+                      </a>
                     </span>
                   </div>
 
@@ -138,7 +141,7 @@ export default function SpareParts() {
                     </span>
 
                     <span className="text-[var(--primary)]">
-                      +91 XXXXX XXXXX
+                      +91 95605 96392
                     </span>
                   </div>
                 </div>

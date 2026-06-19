@@ -214,7 +214,7 @@ export default function VisionMission() {
                   HPMC Leadership Team
                 </h4>
 
-                <p className="text-[var(--primary)]">Innovating Since 1971</p>
+                <p className="text-[var(--primary)]">Innovating Since 1972</p>
               </div>
             </div>
           </div>

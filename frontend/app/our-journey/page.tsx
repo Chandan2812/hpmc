@@ -20,7 +20,7 @@ const items = [
 
 const journeyTimeline = [
   {
-    year: "1971",
+    year: "1972",
     title: "Company Founded",
     description:
       "Started with a vision to provide reliable extrusion machinery solutions.",
@@ -89,7 +89,7 @@ export default function OurJourney() {
             </h1>
 
             <p className="mt-6 text-gray-600 text-sm md:text-base leading-7 max-w-[540px]">
-              Since 1971, HPMC has been shaping the future of extrusion
+              Since 1972, HPMC has been shaping the future of extrusion
               technology. From humble beginnings to becoming a globally
               recognized manufacturer, our journey has been defined by
               innovation, engineering excellence, customer trust, and a
@@ -170,9 +170,7 @@ export default function OurJourney() {
             </div>
 
             <div>
-              <h3 className="text-7xl font-black text-[var(--primary)]">
-                12K+
-              </h3>
+              <h3 className="text-7xl font-black text-[var(--primary)]">1K+</h3>
               <p className="text-white text-xl mt-3">Machines Installed</p>
             </div>
 

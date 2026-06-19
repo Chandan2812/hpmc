@@ -238,10 +238,13 @@ export default function Footer() {
               </p>
 
               <div className="flex flex-col gap-5 mt-7">
-                <div className="flex gap-4">
-                  <MapPin className="text-lime-400 mt-1" size={18} />
+                <div className="flex gap-4 items-start">
+                  <MapPin
+                    className="text-lime-400 mt-1 min-w-[18px] flex-shrink-0"
+                    size={18}
+                  />
 
-                  <p className="text-gray-400 text-sm leading-[28px]">
+                  <p className="text-gray-400 text-sm leading-7">
                     5, Category II, DSIDC Industrial Area Nangloi, Delhi-110041
                   </p>
                 </div>
