@@ -19,6 +19,8 @@ import {
   Recycle,
   Factory,
   Wheat,
+  BadgeCheck,
+  HardHat,
 } from "lucide-react";
 import CountUp from "react-countup";
 import { useInView } from "react-intersection-observer";
@@ -32,8 +34,50 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 import ProductCarousel from "./components/Products";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Award,
+  Globe,
+  Users,
+  Handshake,
+  Clock3,
+  TrendingUp,
+} from "lucide-react";
 import DemoPopup from "./components/PopupDemo";
+
+const values = [
+  {
+    icon: Handshake,
+    title: "Transparent Practices",
+    description:
+      "Honest communication, ethical dealings, and complete transparency at every stage.",
+  },
+  {
+    icon: Award,
+    title: "Superior Quality",
+    description:
+      "Precision-engineered machinery built for durability, efficiency, and performance.",
+  },
+  {
+    icon: Clock3,
+    title: "Timely Delivery",
+    description:
+      "Efficient planning and execution ensure projects are completed on schedule.",
+  },
+  {
+    icon: HardHat,
+    title: "Technical Support",
+    description:
+      "Expert guidance, installation assistance, and responsive after-sales service.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Long-Term Reliability",
+    description:
+      "Trusted by customers for repeat projects, expansions, and new production lines.",
+  },
+];
 
 const industries = [
   {
@@ -127,11 +171,36 @@ const heroSlides = [
 ];
 
 const stats = [
-  { icon: "🏆", value: 50, suffix: "+", label: "Years of Experience" },
-  { icon: "⚙️", value: 1000, suffix: "+", label: "Machines Installed" },
-  { icon: "🌍", value: 80, suffix: "+", label: "Countries Worldwide" },
-  { icon: "👨‍🔧", value: 100, suffix: "+", label: "Expert Engineers" },
-  { icon: "🎯", value: 100, suffix: "%", label: "Customer Satisfaction" },
+  {
+    icon: Award,
+    value: 50,
+    suffix: "+",
+    label: "Years of Experience",
+  },
+  {
+    icon: Factory,
+    value: 1000,
+    suffix: "+",
+    label: "Machines Installed",
+  },
+  {
+    icon: Globe,
+    value: 80,
+    suffix: "+",
+    label: "Countries Worldwide",
+  },
+  {
+    icon: Users,
+    value: 100,
+    suffix: "+",
+    label: "Expert Engineers",
+  },
+  {
+    icon: BadgeCheck,
+    value: 100,
+    suffix: "%",
+    label: "Customer Satisfaction",
+  },
 ];
 
 interface CounterProps {
@@ -268,25 +337,30 @@ export default function Home() {
           <div className="bg-[var(--card)] shadow-[var(--shadow-primary)] border border-[var(--border)] overflow-hidden ">
             {/* GRID */}
             <div className="grid grid-cols-2 md:grid-cols-5">
-              {stats.map((item, index) => (
-                <div
-                  key={index}
-                  className="group flex flex-col items-center text-center p-6 border border-[var(--border)] transition-all duration-300 hover:bg-[var(--primary)] hover:-translate-y-1"
-                >
-                  <div className="relative w-[60px] h-[60px] rounded-full border-2 border-[var(--border)] flex items-center justify-center mb-4 transition-all duration-300 group-hover:border-white">
-                    <div className="absolute top-[-2px] left-1/2 -translate-x-1/2 w-[64px] h-[32px] border-t-[3px] border-[var(--primary)] rounded-t-full transition-all duration-300 group-hover:border-white" />
-                    <span className="text-2xl">{item.icon}</span>
+              {stats.map((item, index) => {
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={index}
+                    className="group flex flex-col items-center text-center p-6 border border-[var(--border)] transition-all duration-300 hover:bg-[var(--primary)] hover:-translate-y-1"
+                  >
+                    <div className="relative w-[60px] h-[60px] rounded-full border-2 border-[var(--border)] flex items-center justify-center mb-4 transition-all duration-300 group-hover:border-white">
+                      <div className="absolute top-[-2px] left-1/2 -translate-x-1/2 w-[64px] h-[32px] border-t-[3px] border-[var(--primary)] rounded-t-full transition-all duration-300 group-hover:border-white" />
+
+                      <Icon className="w-7 h-7 text-[var(--primary)] transition-colors duration-300 group-hover:text-white" />
+                    </div>
+
+                    <h3 className="text-3xl font-bold text-[var(--text-primary)] transition-colors duration-300 group-hover:text-white">
+                      <Counter end={item.value} suffix={item.suffix} />
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)] transition-colors duration-300 group-hover:text-white/90">
+                      {item.label}
+                    </p>
                   </div>
-
-                  <h3 className="text-3xl font-bold text-[var(--text-primary)] transition-colors duration-300 group-hover:text-white">
-                    <Counter end={item.value} suffix={item.suffix} />
-                  </h3>
-
-                  <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)] transition-colors duration-300 group-hover:text-white/90">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -433,86 +507,29 @@ export default function Home() {
             {/* RIGHT BUTTON */}
           </div>
 
-          {/* CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {/* CARD */}
-            <div className="group bg-[var(--card)] border border-[var(--border)] rounded-3xl p-7 hover:-translate-y-2 hover:shadow-[var(--shadow-primary)] transition duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-3xl mb-6 group-hover:bg-[var(--primary)] transition">
-                <span className="group-hover:scale-110 transition">🤝</span>
-              </div>
+            {values.map((item, index) => {
+              const Icon = item.icon;
 
-              <h3 className="text-xl font-bold text-[var(--text-primary)]">
-                Transparent Practices
-              </h3>
+              return (
+                <div
+                  key={index}
+                  className="group bg-[var(--card)] border border-[var(--border)] rounded-3xl p-7 hover:-translate-y-2 hover:shadow-[var(--shadow-primary)] transition duration-300"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-6 group-hover:bg-[var(--primary)] transition">
+                    <Icon className="w-8 h-8 text-[var(--primary)] group-hover:text-white group-hover:scale-110 transition-all duration-300" />
+                  </div>
 
-              <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">
-                Honest communication, ethical dealings, and complete
-                transparency at every stage.
-              </p>
-            </div>
+                  <h3 className="text-xl font-bold text-[var(--text-primary)]">
+                    {item.title}
+                  </h3>
 
-            {/* CARD */}
-            <div className="group bg-[var(--card)] border border-[var(--border)] rounded-3xl p-7 hover:-translate-y-2 hover:shadow-[var(--shadow-primary)] transition duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-3xl mb-6 group-hover:bg-[var(--primary)] transition">
-                <span className="group-hover:scale-110 transition">🏆</span>
-              </div>
-
-              <h3 className="text-xl font-bold text-[var(--text-primary)]">
-                Superior Quality
-              </h3>
-
-              <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">
-                Precision-engineered machinery built for durability, efficiency,
-                and performance.
-              </p>
-            </div>
-
-            {/* CARD */}
-            <div className="group bg-[var(--card)] border border-[var(--border)] rounded-3xl p-7 hover:-translate-y-2 hover:shadow-[var(--shadow-primary)] transition duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-3xl mb-6 group-hover:bg-[var(--primary)] transition">
-                <span className="group-hover:scale-110 transition">⏱️</span>
-              </div>
-
-              <h3 className="text-xl font-bold text-[var(--text-primary)]">
-                Timely Delivery
-              </h3>
-
-              <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">
-                Efficient planning and execution ensure projects are completed
-                on schedule.
-              </p>
-            </div>
-
-            {/* CARD */}
-            <div className="group bg-[var(--card)] border border-[var(--border)] rounded-3xl p-7 hover:-translate-y-2 hover:shadow-[var(--shadow-primary)] transition duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-3xl mb-6 group-hover:bg-[var(--primary)] transition">
-                <span className="group-hover:scale-110 transition">👨‍🔧</span>
-              </div>
-
-              <h3 className="text-xl font-bold text-[var(--text-primary)]">
-                Technical Support
-              </h3>
-
-              <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">
-                Expert guidance, installation assistance, and responsive
-                after-sales service.
-              </p>
-            </div>
-
-            <div className="group bg-[var(--card)] border border-[var(--border)] rounded-3xl p-7 hover:-translate-y-2 hover:shadow-[var(--shadow-primary)] transition duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-3xl mb-6 group-hover:bg-[var(--primary)] transition">
-                <span className="group-hover:scale-110 transition">📈</span>
-              </div>
-
-              <h3 className="text-xl font-bold text-[var(--text-primary)]">
-                Long-Term Reliability
-              </h3>
-
-              <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">
-                Trusted by customers for repeat projects, expansions, and new
-                production lines.
-              </p>
-            </div>
+                  <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">
+                    {item.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

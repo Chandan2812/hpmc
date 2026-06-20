@@ -10,6 +10,43 @@ import PopupForm from "../components/Popup";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ScrollToTop from "../components/ScrollToTop";
+import {
+  Cog,
+  ShieldCheck,
+  Lightbulb,
+  Handshake,
+  TrendingUp,
+  HardHat,
+  Factory,
+} from "lucide-react";
+
+const features = [
+  {
+    title: "Engineering Excellence",
+    desc: "Precision manufacturing backed by over five decades of industry expertise.",
+    icon: Cog,
+  },
+  {
+    title: "Quality",
+    desc: "Built with robust engineering standards and rigorous quality control.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Innovation",
+    desc: "Advanced extrusion technologies designed for higher productivity.",
+    icon: Lightbulb,
+  },
+  {
+    title: "Customer Success",
+    desc: "Focused on helping customers build profitable manufacturing businesses.",
+    icon: Handshake,
+  },
+  {
+    title: "Reliability",
+    desc: "Trusted by manufacturers for long-term performance and support.",
+    icon: TrendingUp,
+  },
+];
 
 export default function About() {
   const [openPopup, setOpenPopup] = useState(false);
@@ -126,51 +163,29 @@ export default function About() {
         </div>
       </section>
 
-      <section className="py-16 bg-[var(--background)]">
+      <section className="pb-16 bg-[var(--background)]">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           {/* VALUES */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
-            {[
-              {
-                title: "Engineering Excellence",
-                desc: "Precision manufacturing backed by over five decades of industry expertise.",
-                icon: "⚙️",
-              },
-              {
-                title: "Quality",
-                desc: "Built with robust engineering standards and rigorous quality control.",
-                icon: "🛡️",
-              },
-              {
-                title: "Innovation",
-                desc: "Advanced extrusion technologies designed for higher productivity.",
-                icon: "💡",
-              },
-              {
-                title: "Customer Success",
-                desc: "Focused on helping customers build profitable manufacturing businesses.",
-                icon: "🤝",
-              },
-              {
-                title: "Reliability",
-                desc: "Trusted by manufacturers for long-term performance and support.",
-                icon: "📈",
-              },
-            ].map((item, index) => (
-              <div key={index} className="text-center px-4">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full border border-[var(--primary)] flex items-center justify-center text-xl">
-                  {item.icon}
+            {features.map((item, index) => {
+              const Icon = item.icon;
+
+              return (
+                <div key={index} className="text-center px-4">
+                  <div className="w-14 h-14 mx-auto mb-4 rounded-full border border-[var(--primary)] flex items-center justify-center">
+                    <Icon className="w-6 h-6 text-[var(--primary)]" />
+                  </div>
+
+                  <h3 className="font-semibold text-[var(--text-primary)] mb-2">
+                    {item.title}
+                  </h3>
+
+                  <p className="text-sm text-[var(--text-secondary)] leading-6">
+                    {item.desc}
+                  </p>
                 </div>
-
-                <h3 className="font-semibold text-[var(--text-primary)] mb-2">
-                  {item.title}
-                </h3>
-
-                <p className="text-sm text-[var(--text-secondary)] leading-6">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* WHY CHOOSE SECTION */}
@@ -265,7 +280,7 @@ export default function About() {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-4">
                     <div className="text-center">
                       <div className="w-10 h-10 mx-auto rounded-full border border-[var(--border)] flex items-center justify-center mb-3">
-                        👨‍🔧
+                        <HardHat className="w-5 h-5 text-[var(--primary)]" />
                       </div>
 
                       <h4 className="font-semibold text-[var(--text-primary)]">
@@ -279,7 +294,7 @@ export default function About() {
 
                     <div className="text-center">
                       <div className="w-10 h-10 mx-auto rounded-full border border-[var(--border)] flex items-center justify-center mb-3">
-                        ⚙️
+                        <Cog className="w-5 h-5 text-[var(--primary)]" />
                       </div>
 
                       <h4 className="font-semibold text-[var(--text-primary)]">
@@ -293,7 +308,7 @@ export default function About() {
 
                     <div className="text-center">
                       <div className="w-10 h-10 mx-auto rounded-full border border-[var(--border)] flex items-center justify-center mb-3">
-                        🏭
+                        <Factory className="w-5 h-5 text-[var(--primary)]" />
                       </div>
 
                       <h4 className="font-semibold text-[var(--text-primary)]">
@@ -307,7 +322,7 @@ export default function About() {
 
                     <div className="text-center">
                       <div className="w-10 h-10 mx-auto rounded-full border border-[var(--border)] flex items-center justify-center mb-3">
-                        🤝
+                        <Handshake className="w-5 h-5 text-[var(--primary)]" />
                       </div>
 
                       <h4 className="font-semibold text-[var(--text-primary)]">
