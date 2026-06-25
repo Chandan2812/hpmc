@@ -1,33 +1,54 @@
 const Lead = require("../models/lead.model");
+const { normalizeLeadStatus, LEAD_STATUSES } = require("../models/lead.model");
 const Employee = require("../models/employee.model");
+const Settings = require("../models/Settings");
 const sendEmail = require("../utils/sendEmail");
+const { normalizeLeadCustomFieldValues } = require("../utils/leadFormConfig");
+const XLSX = require("xlsx");
 
 const otpStore = new Map(); // temporary in-memory storage
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const daysSince = (date) => {
   if (!date) return null;
-  return Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / DAY_MS));
+  return Math.max(
+    0,
+    Math.floor((Date.now() - new Date(date).getTime()) / DAY_MS),
+  );
 };
 
 const getAgingTone = (lead) => {
   const leadAgeDays = daysSince(lead.createdAt) || 0;
-  const lastContactDays = daysSince(lead.lastActivityAt || lead.assignedAt || lead.createdAt) || 0;
+  const lastContactDays =
+    daysSince(lead.lastActivityAt || lead.assignedAt || lead.createdAt) || 0;
 
   if (lastContactDays >= 5 || leadAgeDays >= 15) return "red";
   if (lastContactDays >= 2 || leadAgeDays >= 7) return "yellow";
   return "green";
 };
 
-const decorateLead = (lead) => {
-  const plainLead = typeof lead.toObject === "function" ? lead.toObject() : lead;
-  const lastActivityAt = plainLead.lastActivityAt || plainLead.assignedAt || plainLead.createdAt;
+const areEmployeesEnabled = async () => {
+  const settings = await Settings.findOne();
+  return settings?.modules?.employees !== false;
+};
+
+const decorateLead = (lead, options = {}) => {
+  const includeEmployeeFields = options.includeEmployeeFields !== false;
+  const plainLead =
+    typeof lead.toObject === "function"
+      ? lead.toObject({
+          flattenMaps: true,
+        })
+      : lead;
+  const lastActivityAt =
+    plainLead.lastActivityAt || plainLead.assignedAt || plainLead.createdAt;
   const lastFollowUpActivity = [...(plainLead.activityLog || [])]
     .reverse()
     .find((item) => item.type === "follow-up");
 
-  return {
+  const decoratedLead = {
     ...plainLead,
+    leadStatus: normalizeLeadStatus(plainLead.leadStatus),
     aging: {
       leadAgeDays: daysSince(plainLead.createdAt) || 0,
       lastContactDays: daysSince(lastActivityAt) || 0,
@@ -37,6 +58,122 @@ const decorateLead = (lead) => {
       tone: getAgingTone(plainLead),
     },
   };
+
+  if (!includeEmployeeFields) {
+    delete decoratedLead.assignedTo;
+    delete decoratedLead.assignedAt;
+    delete decoratedLead.lastActivityAt;
+    delete decoratedLead.leadStatus;
+    delete decoratedLead.followUpDate;
+    delete decoratedLead.followUpRemark;
+    delete decoratedLead.notes;
+    delete decoratedLead.activityLog;
+    delete decoratedLead.aging;
+  }
+
+  return decoratedLead;
+};
+
+const normalizeHeader = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+
+const getRowValue = (row, aliases) => {
+  for (const alias of aliases) {
+    const normalizedAlias = normalizeHeader(alias);
+    const key = Object.keys(row).find(
+      (rowKey) => normalizeHeader(rowKey) === normalizedAlias,
+    );
+
+    if (key && row[key] !== undefined && row[key] !== null) {
+      const value = String(row[key]).trim();
+      if (value) return value;
+    }
+  }
+
+  return "";
+};
+
+const parseBoolean = (value) => {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (["true", "yes", "y", "1", "verified"].includes(normalized)) return true;
+  if (["false", "no", "n", "0", "unverified"].includes(normalized))
+    return false;
+  return false;
+};
+
+const parseDate = (value) => {
+  if (!value) return null;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const isObjectId = (value) => /^[a-f\d]{24}$/i.test(String(value || ""));
+
+const buildEmployeeLookup = async () => {
+  const employees = await Employee.find({ active: true }).select("name email");
+  const lookup = new Map();
+
+  employees.forEach((employee) => {
+    lookup.set(String(employee._id), employee._id);
+    lookup.set(employee.email.toLowerCase(), employee._id);
+    lookup.set(employee.name.trim().toLowerCase(), employee._id);
+  });
+
+  return lookup;
+};
+
+const importReservedHeaders = new Set(
+  [
+    "name",
+    "fullname",
+    "customername",
+    "leadname",
+    "email",
+    "emailaddress",
+    "phone",
+    "mobile",
+    "mobileno",
+    "mobilephone",
+    "phonenumber",
+    "contact",
+    "contactnumber",
+    "message",
+    "remark",
+    "remarks",
+    "notes",
+    "source",
+    "status",
+    "leadstatus",
+    "verified",
+    "assignedto",
+    "assignedemployee",
+    "employee",
+    "employeeemail",
+    "employeeid",
+    "followupdate",
+    "nextfollowup",
+    "followupremark",
+  ].map(normalizeHeader),
+);
+
+const readWorkbookRows = (file) => {
+  const workbook = XLSX.read(file.buffer, {
+    type: "buffer",
+    cellDates: true,
+  });
+  const firstSheet = workbook.SheetNames[0];
+
+  if (!firstSheet) return [];
+
+  return XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], {
+    defval: "",
+    raw: false,
+  });
 };
 
 /* ============================
@@ -44,12 +181,12 @@ const decorateLead = (lead) => {
 =============================== */
 exports.sendOTP = async (req, res) => {
   try {
-    const { name, email, phone, companyName, products, message } = req.body;
+    const { name, email, phone, message } = req.body;
 
     // Basic validation
-    if (!name || !email || !phone) {
+    if (!name || !email || !phone || !message) {
       return res.status(400).json({
-        message: "Name, email and phone are required",
+        message: "Name, email, phone and message are required",
       });
     }
 
@@ -63,6 +200,20 @@ exports.sendOTP = async (req, res) => {
       });
     }
 
+    const settings = await Settings.findOne();
+    const customFieldConfig = settings?.leadForm?.customFields || [];
+    const customFieldsResult = normalizeLeadCustomFieldValues(
+      customFieldConfig,
+      req.body.customFields,
+    );
+
+    if (!customFieldsResult.valid) {
+      return res.status(400).json({
+        success: false,
+        message: customFieldsResult.message,
+      });
+    }
+
     // Generate 6 digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
@@ -73,9 +224,8 @@ exports.sendOTP = async (req, res) => {
         name,
         email,
         phone,
-        companyName,
-        products,
         message,
+        customFields: customFieldsResult.values,
       },
       createdAt: Date.now(),
     });
@@ -165,7 +315,7 @@ exports.verifyOTP = async (req, res) => {
       to: "chandangomia2812@gmail.com",
       subject: "New Lead - HPMC",
       html: `
-  <h2>New Product Inquiry</h2>
+  <h2>New Lead Inquiry</h2>
 
   <p><strong>Name:</strong> ${record.data.name}</p>
 
@@ -173,16 +323,16 @@ exports.verifyOTP = async (req, res) => {
 
   <p><strong>Phone:</strong> ${record.data.phone}</p>
 
-  <p><strong>Company:</strong> ${record.data.companyName}</p>
-
-  <p>
-    <strong>Products:</strong>
-    ${
-      Array.isArray(record.data.products)
-        ? record.data.products.join(", ")
-        : record.data.products || "-"
-    }
-  </p>
+  ${
+    record.data.customFields && Object.keys(record.data.customFields).length
+      ? `<h3>Custom Fields</h3>${Object.entries(record.data.customFields)
+          .map(
+            ([key, value]) =>
+              `<p><strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value || "-"}</p>`,
+          )
+          .join("")}`
+      : ""
+  }
 
   <p>
     <strong>Message:</strong><br/>
@@ -208,12 +358,20 @@ exports.verifyOTP = async (req, res) => {
 =============================== */
 exports.getAllLeads = async (req, res) => {
   try {
-    const leads = await Lead.find()
-      .populate("assignedTo", "name email")
-      .populate("notes.createdBy", "name email")
-      .populate("activityLog.employee", "name email")
-      .sort({ createdAt: -1 });
-    res.status(200).json(leads.map(decorateLead));
+    const includeEmployeeFields = await areEmployeesEnabled();
+    let query = Lead.find().sort({ createdAt: -1 });
+
+    if (includeEmployeeFields) {
+      query = query
+        .populate("assignedTo", "name email")
+        .populate("notes.createdBy", "name email")
+        .populate("activityLog.employee", "name email");
+    }
+
+    const leads = await query;
+    res
+      .status(200)
+      .json(leads.map((lead) => decorateLead(lead, { includeEmployeeFields })));
   } catch (err) {
     console.error("Error fetching leads:", err);
     res.status(500).json({ message: "Server error while fetching leads." });
@@ -222,8 +380,19 @@ exports.getAllLeads = async (req, res) => {
 
 exports.getAllLeadActivity = async (req, res) => {
   try {
+    const includeEmployeeFields = await areEmployeesEnabled();
+
+    if (!includeEmployeeFields) {
+      return res.status(200).json({
+        success: true,
+        activity: [],
+      });
+    }
+
     const leads = await Lead.find()
-      .select("name companyName phone email leadStatus assignedTo activityLog createdAt lastActivityAt")
+      .select(
+        "name phone email leadStatus assignedTo activityLog createdAt lastActivityAt",
+      )
       .populate("assignedTo", "name email")
       .populate("activityLog.employee", "name email")
       .sort({ lastActivityAt: -1, createdAt: -1 });
@@ -235,7 +404,6 @@ exports.getAllLeadActivity = async (req, res) => {
           lead: {
             _id: lead._id,
             name: lead.name,
-            companyName: lead.companyName,
             phone: lead.phone,
             email: lead.email,
             leadStatus: lead.leadStatus,
@@ -244,7 +412,10 @@ exports.getAllLeadActivity = async (req, res) => {
           },
         })),
       )
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
       .slice(0, 100);
 
     res.status(200).json({
@@ -260,43 +431,157 @@ exports.getAllLeadActivity = async (req, res) => {
   }
 };
 
-/* ============================
-   MARK LEAD AS TRUE
-=============================== */
-exports.markLead = async (req, res) => {
-  const { id } = req.params;
-  const { marked } = req.body;
-
+exports.importLeads = async (req, res) => {
   try {
-    if (typeof marked !== "boolean") {
+    if (!req.file) {
       return res.status(400).json({
-        message: "Marked value must be boolean",
+        success: false,
+        message: "CSV or Excel file is required",
       });
     }
 
-    const lead = await Lead.findById(id);
+    const rows = readWorkbookRows(req.file);
 
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found." });
+    if (!rows.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No rows found in uploaded file",
+      });
     }
 
-    lead.marked = marked;
-    lead.lastActivityAt = new Date();
-    lead.activityLog.push({
-      type: "marked",
-      message: marked ? "Lead marked as completed" : "Lead marked as pending",
+    const includeEmployeeFields = await areEmployeesEnabled();
+    const employeeLookup = includeEmployeeFields
+      ? await buildEmployeeLookup()
+      : new Map();
+    const leadsToInsert = [];
+    const errors = [];
+
+    rows.forEach((row, index) => {
+      const rowNumber = index + 2;
+      const name = getRowValue(row, [
+        "name",
+        "full name",
+        "customer name",
+        "lead name",
+      ]);
+      const email = getRowValue(row, ["email", "email address"]);
+      const phone = getRowValue(row, [
+        "phone",
+        "phone number",
+        "mobile",
+        "mobile no",
+        "contact",
+        "contact number",
+      ]);
+
+      if (!name || !email || !phone) {
+        errors.push({
+          row: rowNumber,
+          message: "Name, email and phone are required",
+        });
+        return;
+      }
+
+      const rawStatus = getRowValue(row, ["status", "lead status"]);
+      const leadStatus = normalizeLeadStatus(rawStatus.toLowerCase());
+      const assignedValue = getRowValue(row, [
+        "assigned to",
+        "assigned employee",
+        "employee",
+        "employee email",
+        "employee id",
+      ]);
+      const assignedTo =
+        includeEmployeeFields && assignedValue
+          ? employeeLookup.get(assignedValue.trim().toLowerCase()) ||
+            (isObjectId(assignedValue) ? employeeLookup.get(assignedValue) : null)
+          : null;
+
+      if (includeEmployeeFields && assignedValue && !assignedTo) {
+        errors.push({
+          row: rowNumber,
+          message: `Active employee not found for "${assignedValue}"`,
+        });
+        return;
+      }
+
+      const customFields = {};
+      Object.entries(row).forEach(([key, value]) => {
+        if (importReservedHeaders.has(normalizeHeader(key))) return;
+        if (value === undefined || value === null || String(value).trim() === "")
+          return;
+        customFields[key.trim()] = value;
+      });
+
+      const followUpDate = parseDate(
+        getRowValue(row, ["follow up date", "next follow up"]),
+      );
+      const now = new Date();
+
+      leadsToInsert.push({
+        name,
+        email: email.toLowerCase(),
+        phone,
+        message: getRowValue(row, ["message", "remark", "remarks", "notes"]),
+        source: getRowValue(row, ["source"]) || "Imported",
+        verified: parseBoolean(getRowValue(row, ["verified"])),
+        leadStatus,
+        customFields,
+        assignedTo,
+        assignedAt: assignedTo ? now : null,
+        followUpDate,
+        followUpRemark: getRowValue(row, ["follow up remark"]),
+        lastActivityAt: now,
+        activityLog: [
+          {
+            type: "created",
+            message: "Lead imported from spreadsheet",
+          },
+          ...(assignedTo
+            ? [
+                {
+                  type: "assigned",
+                  employee: assignedTo,
+                  message: "Lead assigned during import",
+                },
+              ]
+            : []),
+          ...(LEAD_STATUSES.includes(leadStatus) && leadStatus !== "new"
+            ? [
+                {
+                  type: "status",
+                  message: `Lead status set to ${leadStatus} during import`,
+                },
+              ]
+            : []),
+        ],
+      });
     });
 
-    await lead.save();
+    if (!leadsToInsert.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid leads found to import",
+        errors,
+      });
+    }
 
-    res.status(200).json({
-      message: "Lead updated successfully.",
-      lead: decorateLead(lead),
+    const insertedLeads = await Lead.insertMany(leadsToInsert, {
+      ordered: false,
     });
-  } catch (err) {
-    console.error("Error updating lead:", err);
+
+    res.status(201).json({
+      success: true,
+      message: `${insertedLeads.length} leads imported successfully`,
+      imported: insertedLeads.length,
+      skipped: errors.length,
+      errors,
+    });
+  } catch (error) {
+    console.error("Lead Import Error:", error);
     res.status(500).json({
-      message: "Server error while updating lead.",
+      success: false,
+      message: "Server error while importing leads",
     });
   }
 };
@@ -323,6 +608,15 @@ exports.deleteLead = async (req, res) => {
 
 exports.assignLead = async (req, res) => {
   try {
+    const includeEmployeeFields = await areEmployeesEnabled();
+
+    if (!includeEmployeeFields) {
+      return res.status(403).json({
+        success: false,
+        message: "Employee module is disabled. Lead assignment is unavailable.",
+      });
+    }
+
     const { leadId, employeeId } = req.body;
 
     if (!leadId) {

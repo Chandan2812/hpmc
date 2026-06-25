@@ -1,5 +1,6 @@
 const Employee = require("../models/employee.model");
 const Lead = require("../models/lead.model");
+const { LEAD_STATUSES, normalizeLeadStatus } = require("../models/lead.model");
 const bcrypt = require("bcryptjs");
 
 const jwt = require("jsonwebtoken");
@@ -52,9 +53,13 @@ const getAgingTone = (lead) => {
   return "green";
 };
 
+const getLeadStatus = (lead) => normalizeLeadStatus(lead.leadStatus);
+
 const decorateLead = (lead) => {
   const plainLead =
-    typeof lead.toObject === "function" ? lead.toObject() : lead;
+    typeof lead.toObject === "function"
+      ? lead.toObject({ flattenMaps: true })
+      : lead;
   const lastActivityAt =
     plainLead.lastActivityAt || plainLead.assignedAt || plainLead.createdAt;
   const lastFollowUpActivity = [...(plainLead.activityLog || [])]
@@ -63,6 +68,7 @@ const decorateLead = (lead) => {
 
   return {
     ...plainLead,
+    leadStatus: normalizeLeadStatus(plainLead.leadStatus),
     aging: {
       leadAgeDays: daysSince(plainLead.createdAt) || 0,
       lastContactDays: daysSince(lastActivityAt) || 0,
@@ -78,7 +84,7 @@ const buildWorkDesk = (leads) => {
   const todayStart = startOfToday().getTime();
   const todayEnd = endOfToday().getTime();
   const openLeads = leads.filter(
-    (lead) => !lead.marked && !["won", "lost"].includes(lead.leadStatus),
+    (lead) => !["interested", "not-interested"].includes(getLeadStatus(lead)),
   );
   const followUps = openLeads.filter((lead) => lead.followUpDate);
   const dueToday = followUps.filter((lead) => {
@@ -88,9 +94,7 @@ const buildWorkDesk = (leads) => {
   const overdue = followUps.filter(
     (lead) => new Date(lead.followUpDate).getTime() < todayStart,
   );
-  const newLeads = openLeads.filter(
-    (lead) => (lead.leadStatus || "new") === "new",
-  );
+  const newLeads = openLeads.filter((lead) => getLeadStatus(lead) === "new");
   const siteVisits = openLeads.filter(
     (lead) =>
       (lead.products || []).some((product) =>
@@ -99,13 +103,17 @@ const buildWorkDesk = (leads) => {
   );
   const quotationPending = openLeads.filter(
     (lead) =>
-      ["qualified", "contacted"].includes(lead.leadStatus) &&
+      ["interested", "contacted"].includes(getLeadStatus(lead)) &&
       !(lead.activityLog || []).some((item) => item.type === "quotation"),
   );
 
-  const wonLeads = leads.filter((lead) => lead.leadStatus === "won");
+  const interestedLeads = leads.filter(
+    (lead) => getLeadStatus(lead) === "interested",
+  );
 
-  const lostLeads = leads.filter((lead) => lead.leadStatus === "lost");
+  const notInterestedLeads = leads.filter(
+    (lead) => getLeadStatus(lead) === "not-interested",
+  );
 
   const priorityLeads = [
     ...overdue,
@@ -142,8 +150,8 @@ const buildWorkDesk = (leads) => {
       siteVisits: siteVisits.length,
       quotationPending: quotationPending.length,
       openLeads: openLeads.length,
-      wonLeads: wonLeads.length,
-      lostLeads: lostLeads.length,
+      interestedLeads: interestedLeads.length,
+      notInterestedLeads: notInterestedLeads.length,
     },
     priorityLeads,
   };
@@ -206,7 +214,7 @@ exports.getEmployees = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      employees,
+      data: employees,
     });
   } catch (error) {
     console.error("Get Employees Error:", error);
@@ -479,18 +487,9 @@ exports.getMyLeads = async (req, res) => {
 
 exports.updateLeadStatus = async (req, res) => {
   try {
-    const { leadStatus } = req.body;
+    const leadStatus = normalizeLeadStatus(req.body.leadStatus);
 
-    const allowedStatus = [
-      "new",
-      "contacted",
-      "follow-up",
-      "qualified",
-      "won",
-      "lost",
-    ];
-
-    if (!allowedStatus.includes(leadStatus)) {
+    if (!LEAD_STATUSES.includes(leadStatus)) {
       return res.status(400).json({
         success: false,
         message: "Invalid lead status",
@@ -670,8 +669,10 @@ exports.recordLeadAction = async (req, res) => {
     }
 
     if (actionType === "quotation") {
-      if (!["won", "lost"].includes(lead.leadStatus)) {
-        lead.leadStatus = leadStatus || "qualified";
+      if (!["interested", "not-interested"].includes(getLeadStatus(lead))) {
+        lead.leadStatus = leadStatus
+          ? normalizeLeadStatus(leadStatus)
+          : "interested";
       }
       message = cleanNote || "Quotation pending / sent update recorded";
     }
@@ -728,7 +729,7 @@ exports.getLeadById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      lead,
+      lead: decorateLead(lead),
     });
   } catch (error) {
     console.error(error);
@@ -838,21 +839,25 @@ exports.getMyProfile = async (req, res) => {
     }
 
     const leads = await Lead.find({ assignedTo: req.employee.id });
-    const won = leads.filter((lead) => lead.leadStatus === "won").length;
+    const interested = leads.filter(
+      (lead) => getLeadStatus(lead) === "interested",
+    ).length;
 
     res.status(200).json({
       success: true,
       employee,
       stats: {
         assigned: leads.length,
-        contacted: leads.filter((lead) => lead.leadStatus === "contacted")
+        contacted: leads.filter((lead) => getLeadStatus(lead) === "contacted")
           .length,
-        followUps: leads.filter((lead) => lead.leadStatus === "follow-up")
+        followUps: leads.filter((lead) => getLeadStatus(lead) === "follow-up")
           .length,
-        won,
-        lost: leads.filter((lead) => lead.leadStatus === "lost").length,
+        interested,
+        notInterested: leads.filter(
+          (lead) => getLeadStatus(lead) === "not-interested",
+        ).length,
         conversion: leads.length
-          ? Number(((won / leads.length) * 100).toFixed(1))
+          ? Number(((interested / leads.length) * 100).toFixed(1))
           : 0,
       },
     });

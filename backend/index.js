@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { connect } = require("./config/db");
-
+const settingsRoutes = require("./routes/settings.routes");
 dotenv.config();
 
 const app = express();
@@ -21,6 +21,7 @@ app.use("/vendor", require("./routes/vendor.route"));
 app.use("/career", require("./routes/career.route"));
 app.use("/job-application", require("./routes/jobApplication.route"));
 app.use("/employee", require("./routes/employee.routes"));
+app.use("/api/settings", settingsRoutes);
 app.use("/analytics", require("./routes/analytics.route"));
 
 app.get("/", (req, res) => {

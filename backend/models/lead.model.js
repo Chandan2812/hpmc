@@ -1,5 +1,19 @@
 const mongoose = require("mongoose");
 
+const LEAD_STATUSES = [
+  "new",
+  "contacted",
+  "follow-up",
+  "interested",
+  "not-interested",
+];
+
+const normalizeLeadStatus = (status) => {
+  if (status === "qualified" || status === "won") return "interested";
+  if (status === "lost") return "not-interested";
+  return LEAD_STATUSES.includes(status) ? status : "new";
+};
+
 const leadSchema = new mongoose.Schema(
   {
     assignedTo: {
@@ -27,31 +41,19 @@ const leadSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    companyName: {
-      type: String,
-      trim: true,
-      required: [true, "Company name is required"],
-    },
-
-    products: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-
     message: {
       type: String,
       trim: true,
     },
 
-    // Lead Status
-    verified: {
-      type: Boolean,
-      default: false,
+    customFields: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: {},
     },
 
-    marked: {
+    // Lead Status
+    verified: {
       type: Boolean,
       default: false,
     },
@@ -64,7 +66,8 @@ const leadSchema = new mongoose.Schema(
 
     leadStatus: {
       type: String,
-      enum: ["new", "contacted", "follow-up", "qualified", "won", "lost"],
+      enum: LEAD_STATUSES,
+      set: normalizeLeadStatus,
       default: "new",
     },
 
@@ -119,7 +122,6 @@ const leadSchema = new mongoose.Schema(
             "status",
             "note",
             "follow-up",
-            "marked",
             "call",
             "whatsapp",
             "email",
@@ -150,7 +152,13 @@ const leadSchema = new mongoose.Schema(
   },
 );
 
+leadSchema.pre("validate", function normalizeLegacyLeadStatus() {
+  this.leadStatus = normalizeLeadStatus(this.leadStatus);
+});
+
 leadSchema.index({ assignedTo: 1, leadStatus: 1, followUpDate: 1 });
 leadSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Lead", leadSchema);
+module.exports.LEAD_STATUSES = LEAD_STATUSES;
+module.exports.normalizeLeadStatus = normalizeLeadStatus;
