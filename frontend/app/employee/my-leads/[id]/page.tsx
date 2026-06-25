@@ -39,6 +39,7 @@ interface Lead {
   companyName: string;
   phone: string;
   email: string;
+  customFields?: Record<string, string | number | boolean | string[]>;
   products?: string[];
   message?: string;
   leadStatus: string;
@@ -51,7 +52,13 @@ interface Lead {
   activityLog?: ActivityItem[];
 }
 
-const statuses = ["new", "contacted", "follow-up", "qualified", "won", "lost"];
+const statuses = [
+  "new",
+  "contacted",
+  "follow-up",
+  "interested",
+  "not-interested",
+];
 
 export default function LeadDetailsPage() {
   const { id } = useParams();
@@ -77,6 +84,8 @@ export default function LeadDetailsPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+      console.log("Employee Details API", data);
+      console.log("Custom Fields", data?.lead?.customFields);
       if (!res.ok || !data.success)
         throw new Error(data.message || "Lead not found");
 
@@ -254,23 +263,20 @@ export default function LeadDetailsPage() {
             </div>
           </Panel>
 
-          <Panel title="Products" icon={<CheckCircle2 size={18} />}>
-            <div className="md:col-span-2 flex flex-wrap gap-2">
-              {lead.products?.length ? (
-                lead.products.map((product) => (
-                  <span
-                    key={product}
-                    className="rounded-full bg-[var(--primary)]/10 px-3 py-1 text-sm text-[var(--primary)]"
-                  >
-                    {product}
-                  </span>
-                ))
-              ) : (
-                <span className="text-sm text-[var(--text-secondary)]">
-                  No product selected.
-                </span>
-              )}
-            </div>
+          <Panel title="Custom Fields" icon={<CheckCircle2 size={18} />}>
+            {lead.customFields && Object.keys(lead.customFields).length ? (
+              Object.entries(lead.customFields).map(([key, value]) => (
+                <Info
+                  key={key}
+                  label={formatCustomFieldLabel(key)}
+                  value={formatFieldValue(value)}
+                />
+              ))
+            ) : (
+              <p className="md:col-span-2 text-sm text-[var(--text-secondary)]">
+                No custom fields captured.
+              </p>
+            )}
           </Panel>
         </div>
 
@@ -284,7 +290,9 @@ export default function LeadDetailsPage() {
               >
                 {statuses.map((item) => (
                   <option key={item} value={item}>
-                    {item.replace("-", " ")}
+                    {item
+                      .replace("-", " ")
+                      .replace(/\b\w/g, (char) => char.toUpperCase())}
                   </option>
                 ))}
               </select>
@@ -419,6 +427,20 @@ function Info({ label, value }: { label: string; value: string }) {
       <p className="mt-1 break-words font-medium">{value}</p>
     </div>
   );
+}
+
+function formatFieldValue(value: unknown) {
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "-";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (value === undefined || value === null || value === "") return "-";
+  return String(value);
+}
+
+function formatCustomFieldLabel(value: string) {
+  return value
+    .replace(/([A-Z])/g, " $1")
+    .replace(/[-_]/g, " ")
+    .replace(/^./, (char) => char.toUpperCase());
 }
 
 function Badge({ value }: { value: string }) {

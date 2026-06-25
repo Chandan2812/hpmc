@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock3,
-  FileText,
   Mail,
   MessageCircle,
   Phone,
@@ -15,7 +14,6 @@ import {
   Send,
   StickyNote,
   UserPlus,
-  Video,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -68,8 +66,8 @@ interface WorkDesk {
     siteVisits: number;
     quotationPending: number;
     openLeads: number;
-    wonLeads: number;
-    lostLeads: number;
+    interestedLeads: number;
+    notInterestedLeads: number;
   };
   priorityLeads: Lead[];
   recentActivity: ActivityItem[];
@@ -83,8 +81,8 @@ const EMPTY_DESK: WorkDesk = {
     siteVisits: 0,
     quotationPending: 0,
     openLeads: 0,
-    wonLeads: 0,
-    lostLeads: 0,
+    interestedLeads: 0,
+    notInterestedLeads: 0,
   },
   priorityLeads: [],
   recentActivity: [],
@@ -276,15 +274,15 @@ export default function Dashboard() {
           tone="slate"
         />
         <Metric
-          label="Won"
-          value={desk.summary.wonLeads}
+          label="Interested"
+          value={desk.summary.interestedLeads}
           icon={<CheckCircle2 size={18} />}
           tone="green"
         />
 
         <Metric
-          label="Lost"
-          value={desk.summary.lostLeads}
+          label="Not Interested"
+          value={desk.summary.notInterestedLeads}
           icon={<AlertTriangle size={18} />}
           tone="red"
         />

@@ -29,6 +29,7 @@ export default function FollowUpsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
+  const [now] = useState(() => Date.now());
 
   const fetchLeads = async () => {
     try {
@@ -51,9 +52,11 @@ export default function FollowUpsPage() {
     }
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     fetchLeads();
   }, [API_BASE]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const followUps = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -62,8 +65,8 @@ export default function FollowUpsPage() {
       .filter(
         (lead) =>
           (lead.followUpDate || lead.leadStatus === "follow-up") &&
-          lead.leadStatus !== "won" &&
-          lead.leadStatus !== "lost",
+          lead.leadStatus !== "interested" &&
+          lead.leadStatus !== "not-interested",
       )
       .filter(
         (lead) =>
@@ -93,8 +96,7 @@ export default function FollowUpsPage() {
   }).length;
 
   const overdue = followUps.filter(
-    (lead) =>
-      lead.followUpDate && new Date(lead.followUpDate).getTime() < Date.now(),
+    (lead) => lead.followUpDate && new Date(lead.followUpDate).getTime() < now,
   ).length;
 
   return (

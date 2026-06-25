@@ -40,8 +40,12 @@ interface LeadRequest {
   email: string;
   phone: string;
   companyName?: string;
-  leadStatus?: "new" | "contacted" | "follow-up" | "qualified" | "won" | "lost";
-  marked?: boolean;
+  leadStatus?:
+    | "new"
+    | "contacted"
+    | "follow-up"
+    | "interested"
+    | "not-interested";
   followUpDate?: string | null;
   followUpRemark?: string;
   assignedTo?: {
@@ -72,7 +76,7 @@ async function requestEmployeeCrm(apiBase: string | undefined) {
   }
 
   return {
-    employees: [...(employeeResult.employees || [])].sort(
+    employees: [...(employeeResult.data || [])].sort(
       (a: Employee, b: Employee) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     ),
@@ -200,7 +204,7 @@ export default function AdminEmployee() {
     inactive: employees.filter((e) => !e.active).length,
     assignedLeads: leads.filter((lead) => lead.assignedTo).length,
     followUps: leads.filter((lead) => lead.leadStatus === "follow-up").length,
-    won: leads.filter((lead) => lead.leadStatus === "won").length,
+    interested: leads.filter((lead) => lead.leadStatus === "interested").length,
   };
 
   const hasActiveFilters =
@@ -276,9 +280,12 @@ export default function AdminEmployee() {
       total: assigned.length,
       followUps: assigned.filter((lead) => lead.leadStatus === "follow-up")
         .length,
-      won: assigned.filter((lead) => lead.leadStatus === "won").length,
-      open: assigned.filter((lead) => !lead.marked && lead.leadStatus !== "won")
+      interested: assigned.filter((lead) => lead.leadStatus === "interested")
         .length,
+      open: assigned.filter(
+        (lead) =>
+          !["interested", "not-interested"].includes(lead.leadStatus || "new"),
+      ).length,
     };
   };
 
@@ -359,8 +366,8 @@ export default function AdminEmployee() {
             color="yellow"
           />
           <StatCard
-            label="Won"
-            value={stats.won}
+            label="Interested"
+            value={stats.interested}
             icon={<CheckCircle2 size={18} />}
             color="red"
           />
@@ -566,110 +573,111 @@ export default function AdminEmployee() {
                     const pipeline = getEmployeePipeline(employee._id);
 
                     return (
-                    <tr
-                      key={employee._id}
-                      className="border-b border-[var(--border)] transition last:border-b-0 hover:bg-[var(--background-secondary)]"
-                    >
-                      <td className="px-3 py-4 sm:px-4 md:px-5">
-                        <button
-                          onClick={() => setViewEmployee(employee)}
-                          className="block max-w-full truncate text-left text-sm font-medium text-[var(--text-primary)] transition hover:text-[var(--primary)] md:text-base"
-                        >
-                          {employee.name}
-                        </button>
-                        <p className="mt-1 truncate text-[11px] text-[var(--text-secondary)] sm:text-xs">
-                          {employee.email}
-                        </p>
-                        <p className="mt-1 text-[11px] text-[var(--text-secondary)] lg:hidden">
-                          {pipeline.total} leads, {pipeline.followUps} follow-ups
-                        </p>
-                      </td>
+                      <tr
+                        key={employee._id}
+                        className="border-b border-[var(--border)] transition last:border-b-0 hover:bg-[var(--background-secondary)]"
+                      >
+                        <td className="px-3 py-4 sm:px-4 md:px-5">
+                          <button
+                            onClick={() => setViewEmployee(employee)}
+                            className="block max-w-full truncate text-left text-sm font-medium text-[var(--text-primary)] transition hover:text-[var(--primary)] md:text-base"
+                          >
+                            {employee.name}
+                          </button>
+                          <p className="mt-1 truncate text-[11px] text-[var(--text-secondary)] sm:text-xs">
+                            {employee.email}
+                          </p>
+                          <p className="mt-1 text-[11px] text-[var(--text-secondary)] lg:hidden">
+                            {pipeline.total} leads, {pipeline.followUps}{" "}
+                            follow-ups
+                          </p>
+                        </td>
 
-                      <td className="px-2 py-4 sm:px-4 md:px-5">
-                        <button
-                          onClick={() =>
-                            handleToggleStatus(employee._id, !employee.active)
-                          }
-                          className="flex items-center gap-3"
-                          title={`Click to ${
-                            employee.active ? "Deactivate" : "Activate"
-                          } employee`}
-                        >
-                          <div
-                            className={`
-        relative h-6 w-12 rounded-full transition-all duration-300
-        ${employee.active ? "bg-green-500" : "bg-gray-400"}
-      `}
+                        <td className="px-2 py-4 sm:px-4 md:px-5">
+                          <button
+                            onClick={() =>
+                              handleToggleStatus(employee._id, !employee.active)
+                            }
+                            className="flex items-center gap-3"
+                            title={`Click to ${
+                              employee.active ? "Deactivate" : "Activate"
+                            } employee`}
                           >
                             <div
                               className={`
+        relative h-6 w-12 rounded-full transition-all duration-300
+        ${employee.active ? "bg-green-500" : "bg-gray-400"}
+      `}
+                            >
+                              <div
+                                className={`
           absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md
           transition-all duration-300
           ${employee.active ? "translate-x-6" : "translate-x-0.5"}
         `}
-                            />
+                              />
+                            </div>
+
+                            <span
+                              className={`hidden xl:block text-xs font-medium ${
+                                employee.active
+                                  ? "text-green-600"
+                                  : "text-red-500"
+                              }`}
+                            >
+                              {employee.active ? "Active" : "Inactive"}
+                            </span>
+                          </button>
+                        </td>
+
+                        <td className="hidden px-2 py-4 sm:px-4 lg:table-cell md:px-5">
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <span className="rounded-full bg-blue-500/10 px-2 py-1 font-semibold text-blue-600">
+                              {pipeline.total} assigned
+                            </span>
+                            <span className="rounded-full bg-amber-500/10 px-2 py-1 font-semibold text-amber-600">
+                              {pipeline.followUps} follow-ups
+                            </span>
+                            <span className="rounded-full bg-green-500/10 px-2 py-1 font-semibold text-green-600">
+                              {pipeline.interested} interested
+                            </span>
                           </div>
+                        </td>
 
-                          <span
-                            className={`hidden xl:block text-xs font-medium ${
-                              employee.active
-                                ? "text-green-600"
-                                : "text-red-500"
-                            }`}
-                          >
-                            {employee.active ? "Active" : "Inactive"}
-                          </span>
-                        </button>
-                      </td>
+                        <td className="hidden whitespace-nowrap px-5 py-4 text-xs text-[var(--text-secondary)] xl:table-cell">
+                          {new Date(employee.createdAt).toLocaleDateString()}
+                        </td>
 
-                      <td className="hidden px-2 py-4 sm:px-4 lg:table-cell md:px-5">
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full bg-blue-500/10 px-2 py-1 font-semibold text-blue-600">
-                            {pipeline.total} assigned
-                          </span>
-                          <span className="rounded-full bg-amber-500/10 px-2 py-1 font-semibold text-amber-600">
-                            {pipeline.followUps} follow-ups
-                          </span>
-                          <span className="rounded-full bg-green-500/10 px-2 py-1 font-semibold text-green-600">
-                            {pipeline.won} won
-                          </span>
-                        </div>
-                      </td>
+                        <td className="px-2 py-4 sm:px-4 md:px-5">
+                          <div className="flex justify-start gap-2">
+                            <button
+                              onClick={() => setViewEmployee(employee)}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--primary)] transition hover:bg-[var(--primary)]/10"
+                              title="View Assigned Leads"
+                            >
+                              <Eye size={15} />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedEmployee(employee);
+                                setEmployeeModalOpen(true);
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-blue-600 transition hover:bg-blue-500/10"
+                              title="Edit Employee"
+                            >
+                              <Pencil size={15} />
+                            </button>
 
-                      <td className="hidden whitespace-nowrap px-5 py-4 text-xs text-[var(--text-secondary)] xl:table-cell">
-                        {new Date(employee.createdAt).toLocaleDateString()}
-                      </td>
-
-                      <td className="px-2 py-4 sm:px-4 md:px-5">
-                        <div className="flex justify-start gap-2">
-                          <button
-                            onClick={() => setViewEmployee(employee)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--primary)] transition hover:bg-[var(--primary)]/10"
-                            title="View Assigned Leads"
-                          >
-                            <Eye size={15} />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedEmployee(employee);
-                              setEmployeeModalOpen(true);
-                            }}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-blue-600 transition hover:bg-blue-500/10"
-                            title="Edit Employee"
-                          >
-                            <Pencil size={15} />
-                          </button>
-
-                          <button
-                            onClick={() => handleDelete(employee._id)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-500/10"
-                            title="Delete Employee"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                            <button
+                              onClick={() => handleDelete(employee._id)}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-500/10"
+                              title="Delete Employee"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
                     );
                   })}
                 </tbody>
@@ -731,7 +739,12 @@ function EmployeeLeadsModal({
 }: {
   employee: Employee;
   leads: LeadRequest[];
-  pipeline: { total: number; followUps: number; won: number; open: number };
+  pipeline: {
+    total: number;
+    followUps: number;
+    interested: number;
+    open: number;
+  };
   onClose: () => void;
 }) {
   return (
@@ -763,7 +776,7 @@ function EmployeeLeadsModal({
             <MiniStat label="Assigned" value={pipeline.total} />
             <MiniStat label="Open" value={pipeline.open} />
             <MiniStat label="Follow Ups" value={pipeline.followUps} />
-            <MiniStat label="Won" value={pipeline.won} />
+            <MiniStat label="Interested" value={pipeline.interested} />
           </div>
 
           {leads.length === 0 ? (
@@ -788,14 +801,12 @@ function EmployeeLeadsModal({
                         >
                           {(lead.leadStatus || "new").replace("-", " ")}
                         </span>
-                        <span
-                          className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
-                            lead.marked
-                              ? "bg-green-500/10 text-green-600"
-                              : "bg-yellow-500/10 text-yellow-600"
-                          }`}
-                        >
-                          {lead.marked ? "Completed" : "Open"}
+                        <span className="rounded-full bg-yellow-500/10 px-2 py-1 text-[11px] font-semibold text-yellow-600">
+                          {["interested", "not-interested"].includes(
+                            lead.leadStatus || "new",
+                          )
+                            ? "Closed"
+                            : "Open"}
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-[var(--text-secondary)]">
@@ -943,8 +954,7 @@ function statusClass(status: NonNullable<LeadRequest["leadStatus"]>) {
     new: "bg-slate-500/10 text-slate-600",
     contacted: "bg-blue-500/10 text-blue-600",
     "follow-up": "bg-amber-500/10 text-amber-600",
-    qualified: "bg-violet-500/10 text-violet-600",
-    won: "bg-green-500/10 text-green-600",
-    lost: "bg-red-500/10 text-red-600",
+    interested: "bg-green-500/10 text-green-600",
+    "not-interested": "bg-red-500/10 text-red-600",
   }[status];
 }

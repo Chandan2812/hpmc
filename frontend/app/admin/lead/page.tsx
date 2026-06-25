@@ -12,20 +12,21 @@ import {
   RotateCcw,
   Search,
   Trash2,
+  Upload,
   UserRoundCheck,
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RxCrossCircled } from "react-icons/rx";
+import { useSettings } from "../../context/SettingsContext";
 
 type LeadStatus =
   | "new"
   | "contacted"
   | "follow-up"
-  | "qualified"
-  | "won"
-  | "lost";
+  | "interested"
+  | "not-interested";
 
 interface Employee {
   _id: string;
@@ -52,10 +53,8 @@ interface LeadRequest {
   name: string;
   email: string;
   phone: string;
-  companyName?: string;
-  products?: string[];
+  customFields?: Record<string, string | number | boolean>;
   message?: string;
-  marked?: boolean;
   verified?: boolean;
   leadStatus?: LeadStatus;
   source?: string;
@@ -73,15 +72,27 @@ const statusOptions: Array<"all" | LeadStatus> = [
   "new",
   "contacted",
   "follow-up",
-  "qualified",
-  "won",
-  "lost",
+  "interested",
+  "not-interested",
 ];
 
 const ITEMS_PER_PAGE = 20;
 
+const formatDateTime = (value?: string | null) =>
+  value ? new Date(value).toLocaleString() : "";
+
+const formatFieldValue = (value: unknown) => {
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "-";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (value === undefined || value === null || value === "") return "-";
+  return String(value);
+};
+
 export default function AdminLead() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+  const { settings, loading: settingsLoading } = useSettings();
+  const showAssignment =
+    !settingsLoading && settings?.modules?.employees !== false;
 
   const [leads, setLeads] = useState<LeadRequest[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -92,16 +103,31 @@ export default function AdminLead() {
     useState<(typeof statusOptions)[number]>("all");
   const [assignmentFilter, setAssignmentFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
+  const [showImportModal, setShowImportModal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (!showAssignment) {
+      setStatusFilter("all");
+      setAssignmentFilter("all");
+    }
+  }, [showAssignment]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [leadRes, employeeRes] = await Promise.all([
         fetch(`${API_BASE}/lead`, { cache: "no-store" }),
-        fetch(`${API_BASE}/employee`, { cache: "no-store" }),
+        showAssignment
+          ? fetch(`${API_BASE}/employee`, { cache: "no-store" })
+          : Promise.resolve(null),
       ]);
       const leadData = await leadRes.json();
-      const employeeData = await employeeRes.json();
+      const employeeData = employeeRes ? await employeeRes.json() : null;
 
       setLeads(
         [...(Array.isArray(leadData) ? leadData : [])].sort(
@@ -109,7 +135,11 @@ export default function AdminLead() {
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         ),
       );
-      if (employeeData.success) setEmployees(employeeData.employees || []);
+      if (employeeData?.success) {
+        setEmployees(employeeData.data || employeeData.employees || []);
+      } else {
+        setEmployees([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -118,7 +148,7 @@ export default function AdminLead() {
   /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     fetchData();
-  }, [API_BASE]);
+  }, [API_BASE, showAssignment]);
   /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const filteredLeads = useMemo(() => {
@@ -131,10 +161,14 @@ export default function AdminLead() {
         lead.name.toLowerCase().includes(query) ||
         lead.email.toLowerCase().includes(query) ||
         lead.phone.includes(query) ||
-        (lead.companyName || "").toLowerCase().includes(query) ||
-        (lead.assignedTo?.name || "").toLowerCase().includes(query);
+        Object.values(lead.customFields || {}).some((value) =>
+          String(value).toLowerCase().includes(query),
+        ) ||
+        (showAssignment &&
+          (lead.assignedTo?.name || "").toLowerCase().includes(query));
       const matchesStatus = statusFilter === "all" || status === statusFilter;
       const matchesAssignment =
+        !showAssignment ||
         assignmentFilter === "all" ||
         (assignmentFilter === "assigned"
           ? Boolean(lead.assignedTo)
@@ -142,18 +176,30 @@ export default function AdminLead() {
 
       return matchesSearch && matchesStatus && matchesAssignment;
     });
-  }, [assignmentFilter, leads, searchQuery, statusFilter]);
+  }, [assignmentFilter, leads, searchQuery, showAssignment, statusFilter]);
 
   const stats = useMemo(
     () => ({
       total: leads.length,
-      assigned: leads.filter((lead) => lead.assignedTo).length,
-      unassigned: leads.filter((lead) => !lead.assignedTo).length,
+      assigned: showAssignment
+        ? leads.filter((lead) => lead.assignedTo).length
+        : 0,
+      unassigned: showAssignment
+        ? leads.filter((lead) => !lead.assignedTo).length
+        : 0,
       followUps: leads.filter((lead) => lead.leadStatus === "follow-up").length,
-      won: leads.filter((lead) => lead.leadStatus === "won").length,
-      lost: leads.filter((lead) => lead.leadStatus === "lost").length,
+      interested: leads.filter((lead) => lead.leadStatus === "interested")
+        .length,
+      notInterested: leads.filter(
+        (lead) => lead.leadStatus === "not-interested",
+      ).length,
+      verified: leads.filter((lead) => lead.verified).length,
+      open: leads.filter(
+        (lead) =>
+          !["interested", "not-interested"].includes(lead.leadStatus || "new"),
+      ).length,
     }),
-    [leads],
+    [leads, showAssignment],
   );
 
   const currentLeads = filteredLeads.slice(
@@ -162,7 +208,9 @@ export default function AdminLead() {
   );
   const totalPages = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE);
   const hasFilters =
-    searchQuery || statusFilter !== "all" || assignmentFilter !== "all";
+    searchQuery ||
+    statusFilter !== "all" ||
+    (showAssignment && assignmentFilter !== "all");
 
   const updateLeadInState = (leadId: string, patch: Partial<LeadRequest>) => {
     setLeads((prev) =>
@@ -187,16 +235,6 @@ export default function AdminLead() {
     updateLeadInState(leadId, data.lead);
   };
 
-  const handleMark = async (id: string, marked: boolean) => {
-    const res = await fetch(`${API_BASE}/lead/${id}/mark`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ marked }),
-    });
-    const data = await res.json();
-    if (data.lead) updateLeadInState(id, data.lead);
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this lead?")) return;
     const res = await fetch(`${API_BASE}/lead/${id}`, { method: "DELETE" });
@@ -206,24 +244,38 @@ export default function AdminLead() {
   };
 
   const handleExport = () => {
+    const customFieldKeys = Array.from(
+      new Set(
+        filteredLeads.flatMap((lead) => Object.keys(lead.customFields || {})),
+      ),
+    );
     const rows = [
       [
         "Name",
         "Email",
         "Phone",
         "Company",
-        "Status",
-        "Assigned To",
-        "Next Follow Up",
+        ...customFieldKeys,
+        ...(showAssignment
+          ? ["Status", "Assigned To", "Next Follow Up"]
+          : ["Verified", "Status", "Submitted At"]),
       ],
       ...filteredLeads.map((lead) => [
         lead.name,
         lead.email,
         lead.phone,
-        lead.companyName || "",
-        lead.leadStatus || "new",
-        lead.assignedTo?.name || "Unassigned",
-        lead.followUpDate ? new Date(lead.followUpDate).toLocaleString() : "",
+        ...customFieldKeys.map((key) => lead.customFields?.[key] ?? ""),
+        ...(showAssignment
+          ? [
+              lead.leadStatus || "new",
+              lead.assignedTo?.name || "Unassigned",
+              formatDateTime(lead.followUpDate),
+            ]
+          : [
+              lead.verified ? "Yes" : "No",
+              lead.leadStatus || "new",
+              formatDateTime(lead.createdAt),
+            ]),
       ]),
     ];
     const csv = rows
@@ -239,6 +291,97 @@ export default function AdminLead() {
     link.download = `leads-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadSample = () => {
+    const rows = [
+      [
+        "name",
+        "email",
+        "phone",
+        "message",
+        "source",
+        "status",
+        "verified",
+        "company",
+        "budget",
+      ],
+      [
+        "Rahul Sharma",
+        "rahul@example.com",
+        "9876543210",
+        "Interested in product demo",
+        "Facebook",
+        "new",
+        "yes",
+        "Acme Pvt Ltd",
+        "50000",
+      ],
+    ];
+    const csv = rows
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+      )
+      .join("\n");
+    const url = window.URL.createObjectURL(
+      new Blob([csv], { type: "text/csv" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "lead-import-sample.csv";
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleImportFile = async (file?: File) => {
+    if (!file) return;
+
+    const allowedExtensions = [".csv", ".xls", ".xlsx"];
+    const isAllowed = allowedExtensions.some((extension) =>
+      file.name.toLowerCase().endsWith(extension),
+    );
+
+    if (!isAllowed) {
+      alert("Please upload a CSV, XLS or XLSX file.");
+      return;
+    }
+
+    setImporting(true);
+    setImportMessage("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`${API_BASE}/lead/import`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        const firstError = data.errors?.[0]?.message
+          ? ` First issue: Row ${data.errors[0].row} - ${data.errors[0].message}`
+          : "";
+        alert(`${data.message || "Import failed."}${firstError}`);
+        return;
+      }
+
+      setImportMessage(
+        `${data.imported || 0} leads imported${
+          data.skipped ? `, ${data.skipped} rows skipped` : ""
+        }.`,
+      );
+      setShowImportModal(false);
+      setCurrentPage(1);
+      await fetchData();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to import leads. Please try again.");
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const resetFilters = () => {
@@ -259,11 +402,26 @@ export default function AdminLead() {
             Lead CRM
           </h1>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">
-            Assign inquiries, monitor employee follow-ups, and keep the sales
-            pipeline moving.
+            {showAssignment
+              ? "Assign inquiries, monitor employee follow-ups, and keep the sales pipeline moving."
+              : "Review incoming inquiries and manage lead intake records."}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.xls,.xlsx"
+            className="hidden"
+            onChange={(e) => handleImportFile(e.target.files?.[0])}
+          />
+          <button
+            onClick={() => setShowImportModal(true)}
+            disabled={importing}
+            className="flex h-11 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-5 font-medium disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Upload size={17} /> {importing ? "Importing..." : "Import"}
+          </button>
           <button
             onClick={handleExport}
             className="flex h-11 items-center gap-2 rounded-xl bg-[var(--primary)] px-5 font-medium text-white"
@@ -281,47 +439,84 @@ export default function AdminLead() {
         </div>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-6">
+      {importMessage && (
+        <div className="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700">
+          {importMessage}
+        </div>
+      )}
+
+      <div
+        className={`mb-6 grid grid-cols-2 gap-3 ${
+          showAssignment ? "lg:grid-cols-6" : "lg:grid-cols-3"
+        }`}
+      >
         <Stat
           label="Total"
           value={stats.total}
           icon={<Users size={18} />}
           tone="blue"
         />
-        <Stat
-          label="Assigned"
-          value={stats.assigned}
-          icon={<UserRoundCheck size={18} />}
-          tone="green"
-        />
-        <Stat
-          label="Unassigned"
-          value={stats.unassigned}
-          icon={<Filter size={18} />}
-          tone="amber"
-        />
-        <Stat
-          label="Follow Ups"
-          value={stats.followUps}
-          icon={<CalendarClock size={18} />}
-          tone="violet"
-        />
-        <Stat
-          label="Won"
-          value={stats.won}
-          icon={<CheckCircle2 size={18} />}
-          tone="emerald"
-        />
-        <Stat
-          label="Lost"
-          value={stats.lost}
-          icon={<RxCrossCircled size={18} />}
-          tone="rose"
-        />
+        {showAssignment && (
+          <>
+            <Stat
+              label="Assigned"
+              value={stats.assigned}
+              icon={<UserRoundCheck size={18} />}
+              tone="green"
+            />
+            <Stat
+              label="Unassigned"
+              value={stats.unassigned}
+              icon={<Filter size={18} />}
+              tone="amber"
+            />
+          </>
+        )}
+        {showAssignment ? (
+          <>
+            <Stat
+              label="Follow Ups"
+              value={stats.followUps}
+              icon={<CalendarClock size={18} />}
+              tone="violet"
+            />
+            <Stat
+              label="Interested"
+              value={stats.interested}
+              icon={<CheckCircle2 size={18} />}
+              tone="emerald"
+            />
+            <Stat
+              label="Not Interested"
+              value={stats.notInterested}
+              icon={<RxCrossCircled size={18} />}
+              tone="rose"
+            />
+          </>
+        ) : (
+          <>
+            <Stat
+              label="Verified"
+              value={stats.verified}
+              icon={<CheckCircle2 size={18} />}
+              tone="emerald"
+            />
+            <Stat
+              label="Open"
+              value={stats.open}
+              icon={<Filter size={18} />}
+              tone="amber"
+            />
+          </>
+        )}
       </div>
 
       <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
-        <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr_1fr]">
+        <div
+          className={`grid gap-4 ${
+            showAssignment ? "lg:grid-cols-[1.5fr_1fr_1fr]" : "lg:grid-cols-1"
+          }`}
+        >
           <div className="relative">
             <Search
               size={17}
@@ -333,22 +528,30 @@ export default function AdminLead() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Search name, company, phone, employee..."
+              placeholder={
+                showAssignment
+                  ? "Search name, company, phone, employee..."
+                  : "Search name, company, phone..."
+              }
               className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] pl-10 pr-4 outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
-          <Select
-            value={statusFilter}
-            onChange={(value) =>
-              setStatusFilter(value as (typeof statusOptions)[number])
-            }
-            options={statusOptions}
-          />
-          <Select
-            value={assignmentFilter}
-            onChange={setAssignmentFilter}
-            options={["all", "assigned", "unassigned"]}
-          />
+          {showAssignment && (
+            <Select
+              value={statusFilter}
+              onChange={(value) =>
+                setStatusFilter(value as (typeof statusOptions)[number])
+              }
+              options={statusOptions}
+            />
+          )}
+          {showAssignment && (
+            <Select
+              value={assignmentFilter}
+              onChange={setAssignmentFilter}
+              options={["all", "assigned", "unassigned"]}
+            />
+          )}
         </div>
       </div>
 
@@ -365,9 +568,9 @@ export default function AdminLead() {
                   {[
                     "Lead",
                     "Contact",
-                    "Status",
-                    "Assigned To",
-                    "Next Follow Up",
+                    ...(showAssignment
+                      ? ["Status", "Assigned To"]
+                      : ["Submitted"]),
                     "Actions",
                   ].map((head) => (
                     <th
@@ -387,9 +590,6 @@ export default function AdminLead() {
                   >
                     <td className="px-5 py-4">
                       <p className="font-semibold">{lead.name}</p>
-                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                        {lead.companyName || "No company"}
-                      </p>
                     </td>
                     <td className="px-5 py-4 text-sm">
                       <p>{lead.phone}</p>
@@ -397,45 +597,55 @@ export default function AdminLead() {
                         {lead.email}
                       </p>
                     </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(lead.leadStatus || "new")}`}
-                      >
-                        {lead.leadStatus || "new"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <select
-                        value={lead.assignedTo?._id || ""}
-                        onChange={(e) =>
-                          handleAssignLead(lead._id, e.target.value)
-                        }
-                        className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] px-3 outline-none"
-                      >
-                        <option value="">Unassigned</option>
-                        {employees
-                          .filter((employee) => employee.active !== false)
-                          .map((employee) => (
-                            <option key={employee._id} value={employee._id}>
-                              {employee.name}
-                            </option>
-                          ))}
-                      </select>
-                    </td>
-                    <td className="px-5 py-4 text-sm">
-                      {lead.followUpDate ? (
-                        <>
-                          <p>{new Date(lead.followUpDate).toLocaleString()}</p>
-                          <p className="mt-1 max-w-[220px] truncate text-[var(--text-secondary)]">
-                            {lead.followUpRemark}
-                          </p>
-                        </>
-                      ) : (
-                        <span className="text-[var(--text-secondary)]">
-                          Not scheduled
-                        </span>
-                      )}
-                    </td>
+                    {showAssignment && (
+                      <>
+                        <td className="px-5 py-4">
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(lead.leadStatus || "new")}`}
+                          >
+                            {lead.leadStatus || "new"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <select
+                            value={lead.assignedTo?._id || ""}
+                            onChange={(e) =>
+                              handleAssignLead(lead._id, e.target.value)
+                            }
+                            className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] px-3 outline-none"
+                          >
+                            <option value="">Unassigned</option>
+                            {employees
+                              .filter((employee) => employee.active !== false)
+                              .map((employee) => (
+                                <option key={employee._id} value={employee._id}>
+                                  {employee.name}
+                                </option>
+                              ))}
+                          </select>
+                        </td>
+                      </>
+                    )}
+                    {!showAssignment && (
+                      <td className="px-5 py-4">
+                        <p className="text-sm">
+                          {formatDateTime(lead.createdAt)}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {lead.verified && (
+                            <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-semibold text-emerald-600">
+                              Verified
+                            </span>
+                          )}
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${statusClass(lead.leadStatus || "new")}`}
+                          >
+                            {(lead.leadStatus || "new").replace("-", " ")}
+                          </span>
+                        </div>
+                      </td>
+                    )}
+
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-2">
                         <a
@@ -517,11 +727,88 @@ export default function AdminLead() {
         <LeadModal
           lead={selectedLead}
           employees={employees}
+          showAssignment={showAssignment}
           onClose={() => setSelectedLead(null)}
           onAssign={handleAssignLead}
-          onMark={handleMark}
         />
       )}
+
+      {showImportModal && (
+        <ImportModal
+          importing={importing}
+          onClose={() => setShowImportModal(false)}
+          onDownloadSample={handleDownloadSample}
+          onChooseFile={() => fileInputRef.current?.click()}
+        />
+      )}
+    </div>
+  );
+}
+
+function ImportModal({
+  importing,
+  onClose,
+  onDownloadSample,
+  onChooseFile,
+}: {
+  importing: boolean;
+  onClose: () => void;
+  onDownloadSample: () => void;
+  onChooseFile: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md">
+      <div className="w-full max-w-xl rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="mb-1 text-xs uppercase tracking-[3px] text-[var(--primary)]">
+              Bulk Import
+            </p>
+            <h2 className="font-serif text-3xl">Import Leads</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)]"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="rounded-xl bg-[var(--background-secondary)] p-4 text-sm leading-6 text-[var(--text-secondary)]">
+          <p className="font-semibold text-[var(--text-primary)]">
+            File format
+          </p>
+          <p className="mt-2">
+            Upload a CSV, XLS, or XLSX file. Required columns are{" "}
+            <strong>name</strong>, <strong>email</strong>, and{" "}
+            <strong>phone</strong>.
+          </p>
+          <p className="mt-2">
+            Optional columns: message, source, status, verified.
+          </p>
+          <p className="mt-2">
+            Status can be new, contacted, follow-up, interested, or
+            not-interested. Extra columns like company or budget are saved as
+            custom fields.
+          </p>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <button
+            onClick={onDownloadSample}
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 font-medium"
+          >
+            <Download size={17} /> Download Sample
+          </button>
+          <button
+            onClick={onChooseFile}
+            disabled={importing}
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Upload size={17} /> {importing ? "Importing..." : "Choose File"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -529,15 +816,15 @@ export default function AdminLead() {
 function LeadModal({
   lead,
   employees,
+  showAssignment,
   onClose,
   onAssign,
-  onMark,
 }: {
   lead: LeadRequest;
   employees: Employee[];
+  showAssignment: boolean;
   onClose: () => void;
   onAssign: (leadId: string, employeeId: string) => void;
-  onMark: (leadId: string, marked: boolean) => void;
 }) {
   const timeline = [...(lead.activityLog || [])].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -561,15 +848,35 @@ function LeadModal({
           </button>
         </div>
 
-        <div className="grid gap-6 overflow-y-auto p-6 lg:grid-cols-[1fr_0.9fr]">
+        <div
+          className={`grid gap-6 overflow-y-auto p-6 ${
+            showAssignment ? "lg:grid-cols-[1fr_0.9fr]" : "lg:grid-cols-1"
+          }`}
+        >
           <div className="space-y-5">
             <section className="rounded-2xl border border-[var(--border)] p-5">
               <h3 className="mb-4 font-semibold">Customer</h3>
               <div className="grid gap-4 md:grid-cols-2">
-                <Info label="Company" value={lead.companyName || "-"} />
+                <Info label="Name" value={lead.name} />
+
                 <Info label="Email" value={lead.email} />
                 <Info label="Phone" value={lead.phone} />
                 <Info label="Source" value={lead.source || "Website"} />
+                <Info label="Verified" value={lead.verified ? "Yes" : "No"} />
+
+                <Info
+                  label="Submitted"
+                  value={formatDateTime(lead.createdAt)}
+                />
+                {showAssignment && (
+                  <>
+                    <Info label="Status" value={lead.leadStatus || "new"} />
+                    <Info
+                      label=" Follow Up"
+                      value={formatDateTime(lead.followUpDate) || "-"}
+                    />
+                  </>
+                )}
               </div>
               <p className="mt-5 whitespace-pre-wrap text-sm leading-6 text-[var(--text-secondary)]">
                 {lead.message || "No message provided."}
@@ -577,93 +884,96 @@ function LeadModal({
             </section>
 
             <section className="rounded-2xl border border-[var(--border)] p-5">
-              <h3 className="mb-4 font-semibold">Products</h3>
-              <div className="flex flex-wrap gap-2">
-                {lead.products?.length ? (
-                  lead.products.map((product) => (
-                    <span
-                      key={product}
-                      className="rounded-full bg-[var(--primary)]/10 px-3 py-1 text-sm text-[var(--primary)]"
-                    >
-                      {product}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-sm text-[var(--text-secondary)]">
-                    No product selected.
-                  </span>
-                )}
-              </div>
+              <h3 className="mb-4 font-semibold">Custom Fields</h3>
+              {lead.customFields && Object.keys(lead.customFields).length ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {Object.entries(lead.customFields).map(([key, value]) => (
+                    <Info
+                      key={key}
+                      label={formatCustomFieldLabel(key)}
+                      value={formatFieldValue(value)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--text-secondary)]">
+                  No custom fields captured.
+                </p>
+              )}
             </section>
 
-            <section className="rounded-2xl border border-[var(--border)] p-5">
-              <h3 className="mb-4 font-semibold">Employee Notes</h3>
-              <div className="space-y-3">
-                {lead.notes?.length ? (
-                  lead.notes.map((note, index) => (
-                    <div
-                      key={`${note.createdAt}-${index}`}
-                      className="rounded-xl bg-[var(--background-secondary)] p-4"
-                    >
-                      <p className="text-sm">{note.text}</p>
-                      <p className="mt-2 text-xs text-[var(--text-secondary)]">
-                        {note.createdBy?.name || "Employee"} -{" "}
-                        {new Date(note.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    No notes yet.
-                  </p>
-                )}
-              </div>
-            </section>
+            {showAssignment && (
+              <section className="rounded-2xl border border-[var(--border)] p-5">
+                <h3 className="mb-4 font-semibold">Employee Notes</h3>
+                <div className="space-y-3">
+                  {lead.notes?.length ? (
+                    lead.notes.map((note, index) => (
+                      <div
+                        key={`${note.createdAt}-${index}`}
+                        className="rounded-xl bg-[var(--background-secondary)] p-4"
+                      >
+                        <p className="text-sm">{note.text}</p>
+                        <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                          {note.createdBy?.name || "Employee"} -{" "}
+                          {formatDateTime(note.createdAt)}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      No notes yet.
+                    </p>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
 
-          <aside className="space-y-5">
-            <section className="rounded-2xl border border-[var(--border)] p-5">
-              <h3 className="mb-4 font-semibold">Assignment</h3>
-              <select
-                value={lead.assignedTo?._id || ""}
-                onChange={(e) => onAssign(lead._id, e.target.value)}
-                className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] px-3 outline-none"
-              >
-                <option value="">Unassigned</option>
-                {employees
-                  .filter((employee) => employee.active !== false)
-                  .map((employee) => (
-                    <option key={employee._id} value={employee._id}>
-                      {employee.name}
-                    </option>
-                  ))}
-              </select>
-            </section>
+          {showAssignment && (
+            <aside className="space-y-5">
+              <section className="rounded-2xl border border-[var(--border)] p-5">
+                <h3 className="mb-4 font-semibold">Assignment</h3>
+                <select
+                  value={lead.assignedTo?._id || ""}
+                  onChange={(e) => onAssign(lead._id, e.target.value)}
+                  className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] px-3 outline-none"
+                >
+                  <option value="">Unassigned</option>
+                  {employees
+                    .filter((employee) => employee.active !== false)
+                    .map((employee) => (
+                      <option key={employee._id} value={employee._id}>
+                        {employee.name}
+                      </option>
+                    ))}
+                </select>
+              </section>
 
-            <section className="rounded-2xl max-h-96 overflow-auto border border-[var(--border)] p-5">
-              <h3 className="mb-4 font-semibold">Timeline</h3>
-              <div className="space-y-4">
-                {timeline.length ? (
-                  timeline.map((item, index) => (
-                    <div
-                      key={`${item.createdAt}-${index}`}
-                      className="border-l-2 border-[var(--primary)]/40 pl-4"
-                    >
-                      <p className="text-sm font-medium">{item.message}</p>
-                      <p className="mt-1 text-xs text-[var(--text-secondary)]">
-                        {item.employee?.name || "Admin"} -{" "}
-                        {new Date(item.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    No timeline recorded.
-                  </p>
-                )}
-              </div>
-            </section>
-          </aside>
+              <section className="rounded-2xl max-h-96 overflow-auto border border-[var(--border)] p-5">
+                <h3 className="mb-4 font-semibold">Timeline</h3>
+                <div className="space-y-4">
+                  {timeline.length ? (
+                    timeline.map((item, index) => (
+                      <div
+                        key={`${item.createdAt}-${index}`}
+                        className="border-l-2 border-[var(--primary)]/40 pl-4"
+                      >
+                        <p className="text-sm font-medium">{item.message}</p>
+                        <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                          {item.employee?.name || "Admin"} -{" "}
+                          {formatDateTime(item.createdAt)}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      No timeline recorded.
+                    </p>
+                  )}
+                </div>
+              </section>
+            </aside>
+          )}
         </div>
       </div>
     </div>
@@ -705,6 +1015,12 @@ function Info({ label, value }: { label: string; value: string }) {
   );
 }
 
+function formatCustomFieldLabel(value: string) {
+  return value
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (char) => char.toUpperCase());
+}
+
 function Stat({
   label,
   value,
@@ -742,8 +1058,7 @@ function statusClass(status: LeadStatus) {
     new: "bg-slate-500/10 text-slate-600",
     contacted: "bg-blue-500/10 text-blue-600",
     "follow-up": "bg-amber-500/10 text-amber-600",
-    qualified: "bg-violet-500/10 text-violet-600",
-    won: "bg-green-500/10 text-green-600",
-    lost: "bg-red-500/10 text-red-600",
+    interested: "bg-green-500/10 text-green-600",
+    "not-interested": "bg-red-500/10 text-red-600",
   }[status];
 }

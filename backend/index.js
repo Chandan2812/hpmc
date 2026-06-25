@@ -21,6 +21,7 @@ app.use("/vendor", require("./routes/vendor.route"));
 app.use("/career", require("./routes/career.route"));
 app.use("/job-application", require("./routes/jobApplication.route"));
 app.use("/employee", require("./routes/employee.routes"));
+app.use("/analytics", require("./routes/analytics.route"));
 
 app.get("/", (req, res) => {
   res.status(200).send("API LIVE 🚀");

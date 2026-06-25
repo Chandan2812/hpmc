@@ -1,33 +1,31 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Cookies from "js-cookie";
 import {
-  Search,
-  RefreshCw,
-  Users,
-  Trophy,
-  PhoneCall,
   Clock3,
-  TrendingDown,
+  Eye,
   Filter,
-  Building2,
   Mail,
+  MessageCircle,
   Phone,
+  PhoneCall,
+  RefreshCw,
+  Search,
+  TrendingDown,
+  Trophy,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 interface Lead {
   _id: string;
   name: string;
-  companyName: string;
+  companyName?: string;
   phone: string;
   email: string;
-  products?: string[];
   message?: string;
   leadStatus?: string;
   verified?: boolean;
-  marked?: boolean;
   createdAt: string;
 }
 
@@ -40,23 +38,17 @@ export default function MyLeadsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [error, setError] = useState("");
 
-  const employee =
-    typeof window !== "undefined"
-      ? JSON.parse(Cookies.get("employee") || "{}")
-      : {};
-
   const fetchLeads = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const token = localStorage.getItem("employeeToken");
-
       const res = await fetch(`${API_BASE}/employee/my-leads`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
       const data = await res.json();
 
       if (!data.success) {
@@ -71,56 +63,54 @@ export default function MyLeadsPage() {
     }
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     fetchLeads();
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const filteredLeads = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
     return leads.filter((lead) => {
       const matchesSearch =
-        lead.name.toLowerCase().includes(search.toLowerCase()) ||
-        lead.companyName.toLowerCase().includes(search.toLowerCase()) ||
-        lead.email.toLowerCase().includes(search.toLowerCase()) ||
-        lead.phone.includes(search);
+        !query ||
+        lead.name.toLowerCase().includes(query) ||
+        (lead.companyName || "").toLowerCase().includes(query) ||
+        lead.email.toLowerCase().includes(query) ||
+        lead.phone.includes(query);
 
       const matchesStatus =
-        statusFilter === "all"
-          ? true
-          : (lead.leadStatus || "new") === statusFilter;
+        statusFilter === "all" || (lead.leadStatus || "new") === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
   }, [leads, search, statusFilter]);
 
-  const stats = useMemo(() => {
-    const total = leads.length;
-
-    return {
-      total,
-      won: leads.filter((l) => l.leadStatus === "won").length,
-      contacted: leads.filter((l) => l.leadStatus === "contacted").length,
-      followup: leads.filter((l) => l.leadStatus === "follow-up").length,
-      lost: leads.filter((l) => l.leadStatus === "lost").length,
-    };
-  }, [leads]);
+  const stats = useMemo(
+    () => ({
+      total: leads.length,
+      interested: leads.filter((lead) => lead.leadStatus === "interested")
+        .length,
+      contacted: leads.filter((lead) => lead.leadStatus === "contacted").length,
+      followup: leads.filter((lead) => lead.leadStatus === "follow-up").length,
+      notInterested: leads.filter(
+        (lead) => lead.leadStatus === "not-interested",
+      ).length,
+    }),
+    [leads],
+  );
 
   const getStatusClass = (status: string) => {
     switch (status) {
-      case "won":
-        return "bg-green-500/10 text-green-500";
-
-      case "lost":
-        return "bg-red-500/10 text-red-500";
-
+      case "interested":
+        return "bg-green-500/10 text-green-600";
+      case "not-interested":
+        return "bg-red-500/10 text-red-600";
       case "contacted":
-        return "bg-blue-500/10 text-blue-500";
-
+        return "bg-blue-500/10 text-blue-600";
       case "follow-up":
-        return "bg-yellow-500/10 text-yellow-500";
-
-      case "qualified":
-        return "bg-purple-500/10 text-purple-500";
-
+        return "bg-yellow-500/10 text-yellow-600";
       default:
         return "bg-[var(--primary)]/10 text-[var(--primary)]";
     }
@@ -136,48 +126,21 @@ export default function MyLeadsPage() {
 
   return (
     <section className="pb-24 md:pb-10">
-      {/* HERO */}
-      <div
-        className="
-        mb-8
-        overflow-hidden
-        rounded-3xl
-        border
-        border-[var(--border)]
-        bg-gradient-to-r
-        from-[var(--primary)]/10
-        via-[var(--card)]
-        to-[var(--primary)]/5
-        p-8
-      "
-      >
+      <div className="mb-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 md:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="mb-2 text-xs uppercase tracking-[4px] text-[var(--primary)]">
               Lead Management
             </p>
-
-            <h1 className="text-4xl font-bold">My Leads 👨‍💼</h1>
-
+            <h1 className="text-4xl font-bold">My Leads</h1>
             <p className="mt-2 text-[var(--text-secondary)]">
-              Manage assigned leads, follow-ups and conversions.
+              Manage assigned leads, follow-ups and customer interest.
             </p>
           </div>
 
           <button
             onClick={fetchLeads}
-            className="
-              flex
-              items-center
-              gap-2
-              rounded-2xl
-              bg-[var(--primary)]
-              px-5
-              py-3
-              text-white
-              hover:scale-105
-              transition
-            "
+            className="flex h-11 items-center gap-2 rounded-xl bg-[var(--primary)] px-5 font-medium text-white transition hover:opacity-90"
           >
             <RefreshCw size={18} />
             Refresh
@@ -185,100 +148,66 @@ export default function MyLeadsPage() {
         </div>
       </div>
 
-      {/* STATS */}
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <StatCard
           title="Total Leads"
           value={stats.total}
           icon={<Users size={20} />}
         />
-
         <StatCard
           title="Contacted"
           value={stats.contacted}
           icon={<PhoneCall size={20} />}
         />
-
         <StatCard
           title="Follow Up"
           value={stats.followup}
           icon={<Clock3 size={20} />}
         />
-
-        <StatCard title="Won" value={stats.won} icon={<Trophy size={20} />} />
-
         <StatCard
-          title="Lost"
-          value={stats.lost}
+          title="Interested"
+          value={stats.interested}
+          icon={<Trophy size={20} />}
+        />
+        <StatCard
+          title="Not Interested"
+          value={stats.notInterested}
           icon={<TrendingDown size={20} />}
         />
       </div>
 
-      {/* FILTERS */}
-      <div
-        className="
-        mt-8
-        rounded-3xl
-        border
-        border-[var(--border)]
-        bg-[var(--card)]
-        p-5
-      "
-      >
-        <div className="grid gap-4 lg:grid-cols-3">
+      <div className="mt-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-5">
+        <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr_auto]">
           <div className="relative">
             <Search
               size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
             />
-
             <input
               type="text"
               placeholder="Search leads..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="
-              w-full
-              rounded-2xl
-              border
-              border-[var(--border)]
-              bg-transparent
-              py-3
-              pl-11
-              pr-4
-              outline-none
-            "
+              onChange={(event) => setSearch(event.target.value)}
+              className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] pl-11 pr-4 outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
 
           <div className="relative">
             <Filter
               size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]"
             />
-
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="
-              w-full
-              rounded-2xl
-              border
-              border-[var(--border)]
-              bg-transparent
-              py-3
-              pl-11
-              pr-4
-              outline-none
-            "
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] pl-11 pr-4 outline-none focus:ring-2 focus:ring-[var(--primary)]"
             >
               <option value="all">All Status</option>
               <option value="new">New</option>
               <option value="contacted">Contacted</option>
               <option value="follow-up">Follow Up</option>
-              <option value="qualified">Qualified</option>
-              <option value="won">Won</option>
-              <option value="lost">Lost</option>
+              <option value="interested">Interested</option>
+              <option value="not-interested">Not Interested</option>
             </select>
           </div>
 
@@ -288,197 +217,115 @@ export default function MyLeadsPage() {
         </div>
       </div>
 
-      {/* LEADS */}
-      <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {filteredLeads.map((lead) => (
-          <Link key={lead._id} href={`/employee/my-leads/${lead._id}`}>
-            <div
-              className="
-      group
-      cursor-pointer
-      rounded-3xl
-      border
-      border-[var(--border)]
-      bg-[var(--card)]
-      p-6
-      transition-all
-      duration-300
-      hover:-translate-y-1
-      hover:shadow-2xl
-      hover:border-[var(--primary)]/30
-    "
-            >
-              <div className="mb-5 flex items-start justify-between">
-                <div>
-                  <h3 className="text-xl font-bold">{lead.name}</h3>
-
-                  <div className="mt-2 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                    <Building2 size={15} />
-                    {lead.companyName}
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-end gap-2">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(
-                      lead.leadStatus || "new",
-                    )}`}
-                  >
-                    {lead.leadStatus || "new"}
-                  </span>
-
-                  {lead.verified && (
-                    <span className="rounded-full bg-green-500/10 px-2 py-1 text-[10px] text-green-500">
-                      Verified
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <Phone size={15} />
-                  {lead.phone}
-                </div>
-
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail size={15} />
-                  {lead.email}
-                </div>
-              </div>
-
-              {lead.products && lead.products.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {lead.products.map((product, index) => (
-                    <span
-                      key={index}
-                      className="
-                    rounded-full
-                    bg-[var(--primary)]/10
-                    px-3
-                    py-1
-                    text-xs
-                    text-[var(--primary)]
-                  "
+      <div className="mt-8 overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)]">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[920px]">
+            <thead className="border-b border-[var(--border)] bg-[var(--background-secondary)]">
+              <tr>
+                {["Lead", "Contact", "Status", "Submitted", "Actions"].map(
+                  (head) => (
+                    <th
+                      key={head}
+                      className="px-5 py-4 text-left text-sm font-semibold text-[var(--text-primary)]"
                     >
-                      {product}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {lead.message && (
-                <div className="mt-5 rounded-2xl bg-[var(--background-secondary)] p-4 text-sm text-[var(--text-secondary)]">
-                  {lead.message.length > 120
-                    ? `${lead.message.slice(0, 120)}...`
-                    : lead.message}
-                </div>
-              )}
-
-              {/* QUICK ACTIONS */}
-              <div className="mt-5 flex gap-2">
-                <a
-                  href={`tel:${lead.phone}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="
-      flex-1
-      rounded-xl
-      border
-      border-green-500/20
-      bg-green-500/10
-      px-3
-      py-2
-      text-center
-      text-sm
-      font-medium
-      text-green-500
-      transition
-      hover:bg-green-500/20
-    "
+                      {head}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredLeads.map((lead) => (
+                <tr
+                  key={lead._id}
+                  className="border-b border-[var(--border)] transition last:border-b-0 hover:bg-[var(--background-secondary)]"
                 >
-                  📞 Call
-                </a>
-
-                <a
-                  href={`https://wa.me/${lead.phone.replace(/\D/g, "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="
-      flex-1
-      rounded-xl
-      border
-      border-emerald-500/20
-      bg-emerald-500/10
-      px-3
-      py-2
-      text-center
-      text-sm
-      font-medium
-      text-emerald-500
-      transition
-      hover:bg-emerald-500/20
-    "
-                >
-                  💬 WhatsApp
-                </a>
-
-                <a
-                  href={`mailto:${lead.email}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="
-      flex-1
-      rounded-xl
-      border
-      border-blue-500/20
-      bg-blue-500/10
-      px-3
-      py-2
-      text-center
-      text-sm
-      font-medium
-      text-blue-500
-      transition
-      hover:bg-blue-500/20
-    "
-                >
-                  ✉ Email
-                </a>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between border-t border-[var(--border)] pt-4">
-                <span className="text-xs text-[var(--text-secondary)]">
-                  {new Date(lead.createdAt).toLocaleDateString()}
-                </span>
-
-                <span className="text-sm font-medium text-[var(--primary)]">
-                  View Details →
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
+                  <td className="px-5 py-4">
+                    <Link
+                      href={`/employee/my-leads/${lead._id}`}
+                      className="font-semibold text-[var(--text-primary)] hover:text-[var(--primary)]"
+                    >
+                      {lead.name}
+                    </Link>
+                    <p className="mt-1 max-w-[260px] truncate text-xs text-[var(--text-secondary)]">
+                      {lead.companyName || lead.message || "No company detail"}
+                    </p>
+                  </td>
+                  <td className="px-5 py-4 text-sm">
+                    <p className="flex items-center gap-2">
+                      <Phone size={14} /> {lead.phone}
+                    </p>
+                    <p className="mt-1 flex items-center gap-2 text-[var(--text-secondary)]">
+                      <Mail size={14} /> {lead.email}
+                    </p>
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(
+                          lead.leadStatus || "new",
+                        )}`}
+                      >
+                        {(lead.leadStatus || "new").replace("-", " ")}
+                      </span>
+                      {lead.verified && (
+                        <span className="rounded-full bg-green-500/10 px-2 py-1 text-[10px] font-semibold text-green-600">
+                          Verified
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 text-sm text-[var(--text-secondary)]">
+                    {new Date(lead.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex gap-2">
+                      <a
+                        href={`tel:${lead.phone}`}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-green-600 hover:bg-green-500/10"
+                        title="Call"
+                      >
+                        <Phone size={16} />
+                      </a>
+                      <a
+                        href={`https://wa.me/${lead.phone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="grid h-9 w-9 place-items-center rounded-lg text-emerald-600 hover:bg-emerald-500/10"
+                        title="WhatsApp"
+                      >
+                        <MessageCircle size={16} />
+                      </a>
+                      <a
+                        href={`mailto:${lead.email}`}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-blue-600 hover:bg-blue-500/10"
+                        title="Email"
+                      >
+                        <Mail size={16} />
+                      </a>
+                      <Link
+                        href={`/employee/my-leads/${lead._id}`}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                        title="View Details"
+                      >
+                        <Eye size={16} />
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {filteredLeads.length === 0 && (
-        <div
-          className="
-          mt-10
-          rounded-3xl
-          border
-          border-dashed
-          border-[var(--border)]
-          p-14
-          text-center
-        "
-        >
+        <div className="mt-10 rounded-3xl border border-dashed border-[var(--border)] p-14 text-center">
           <Users
             size={50}
             className="mx-auto mb-4 text-[var(--text-secondary)]"
           />
-
           <h3 className="text-xl font-semibold">No Leads Found</h3>
-
           <p className="mt-2 text-[var(--text-secondary)]">
             Try changing search or filters.
           </p>
@@ -504,26 +351,11 @@ function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div
-      className="
-      rounded-3xl
-      border
-      border-[var(--border)]
-      bg-[var(--card)]
-      p-6
-      transition-all
-      hover:-translate-y-1
-      hover:shadow-xl
-    "
-    >
-      <div className="mb-4 flex justify-between">
-        <div className="rounded-2xl bg-[var(--primary)]/10 p-3 text-[var(--primary)]">
-          {icon}
-        </div>
+    <div className="rounded-3xl border border-[var(--border)] bg-[var(--card)] p-5">
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+        {icon}
       </div>
-
-      <h3 className="text-3xl font-bold">{value}</h3>
-
+      <h3 className="text-2xl font-bold md:text-3xl">{value}</h3>
       <p className="mt-1 text-sm text-[var(--text-secondary)]">{title}</p>
     </div>
   );

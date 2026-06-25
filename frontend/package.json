@@ -25,6 +25,7 @@
     "react-phone-number-input": "^3.4.16",
     "react-quill-new": "^3.8.3",
     "react-select": "^5.10.2",
+    "recharts": "^3.8.1",
     "swiper": "^12.2.0"
   },
   "devDependencies": {

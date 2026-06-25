@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
+import { useSettings } from "../context/SettingsContext";
 
 import {
   Briefcase,
@@ -32,6 +33,7 @@ export default function EmployeeLayout({
   const router = useRouter();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { settings, loading } = useSettings();
 
   const navItems = [
     {
@@ -63,6 +65,7 @@ export default function EmployeeLayout({
 
     router.push("/login");
   };
+  const logoUrl = settings?.branding?.logo || "/logo.png";
 
   return (
     <div className="h-screen flex flex-col lg:flex-row overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
@@ -71,7 +74,7 @@ export default function EmployeeLayout({
       <div className="lg:hidden text-[var(--text-primary)] flex items-center justify-between px-5 py-4 shadow-sm border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
           <Image
-            src="/hp-logo.png"
+            src={logoUrl}
             alt="logo"
             width={40}
             height={40}
@@ -105,7 +108,13 @@ export default function EmployeeLayout({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
-            <Image src="/hp-logo.png" alt="logo" width={40} height={40} />
+            <Image
+              src={logoUrl}
+              alt="logo"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
 
             <span className="text-lg font-semibold text-[var(--text)]">
               Employee
@@ -180,7 +189,7 @@ export default function EmployeeLayout({
         {/* Logo */}
         <div className="p-5 shrink-0">
           <Image
-            src="/hp-logo.png"
+            src={logoUrl}
             alt="logo"
             width={140}
             height={100}
