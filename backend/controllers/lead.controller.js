@@ -181,7 +181,8 @@ const readWorkbookRows = (file) => {
 =============================== */
 exports.sendOTP = async (req, res) => {
   try {
-    const { name, email, phone, message } = req.body;
+    const { name, email, phone, message, customFields, ...extraLeadFields } =
+      req.body;
 
     // Basic validation
     if (!name || !email || !phone || !message) {
@@ -204,7 +205,12 @@ exports.sendOTP = async (req, res) => {
     const customFieldConfig = settings?.leadForm?.customFields || [];
     const customFieldsResult = normalizeLeadCustomFieldValues(
       customFieldConfig,
-      req.body.customFields,
+      {
+        ...extraLeadFields,
+        ...(customFields && typeof customFields === "object"
+          ? customFields
+          : {}),
+      },
     );
 
     if (!customFieldsResult.valid) {

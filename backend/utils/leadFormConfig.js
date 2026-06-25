@@ -149,6 +149,9 @@ const normalizeLeadFormFields = (fields = []) => {
 const normalizeLeadCustomFieldValues = (fields = [], values = {}) => {
   const source = values && typeof values === "object" ? values : {};
   const normalized = {};
+  const configuredFieldIds = new Set(
+    fields.flatMap((field) => [field.id, toFieldId(field.id)]),
+  );
 
   for (const field of fields) {
     const rawValue = source[field.id];
@@ -206,6 +209,46 @@ const normalizeLeadCustomFieldValues = (fields = [], values = {}) => {
 
     normalized[field.id] = sanitizeText(value, field.type === "textarea" ? 2000 : 300);
   }
+
+  Object.entries(source).forEach(([key, rawValue]) => {
+    const id = /^[a-zA-Z][a-zA-Z0-9]*$/.test(key) ? key : toFieldId(key);
+
+    if (
+      !id ||
+      configuredFieldIds.has(id) ||
+      configuredFieldIds.has(toFieldId(id)) ||
+      SYSTEM_FIELD_IDS.includes(id)
+    ) {
+      return;
+    }
+
+    if (rawValue === undefined || rawValue === null || rawValue === "") {
+      return;
+    }
+
+    if (Array.isArray(rawValue)) {
+      const values = rawValue
+        .map((item) => sanitizeText(item, 300))
+        .filter(Boolean);
+
+      if (values.length) {
+        normalized[id] = values;
+      }
+
+      return;
+    }
+
+    if (typeof rawValue === "boolean") {
+      normalized[id] = rawValue;
+      return;
+    }
+
+    const value = sanitizeText(rawValue, 2000);
+
+    if (value) {
+      normalized[id] = value;
+    }
+  });
 
   return {
     valid: true,

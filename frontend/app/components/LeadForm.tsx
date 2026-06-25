@@ -4,6 +4,11 @@ import { useState } from "react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import Select from "react-select";
+import { useLeadFormSettings } from "../hooks/useLeadFormSettings";
+import LeadCustomFields, {
+  type LeadCustomFieldValue,
+  type LeadCustomFieldValues,
+} from "./LeadCustomFields";
 
 const productOptions = [
   { value: "Single Screw Extruder", label: "Single Screw Extruder" },
@@ -95,13 +100,15 @@ interface LeadFormProps {
   onSuccess?: () => void;
 }
 
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
 export default function LeadForm({ onSuccess }: LeadFormProps) {
+  const { leadForm, loading: leadFormLoading } = useLeadFormSettings();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
-  const [showOtpBox, setShowOtpBox] = useState(false);
   const [otp, setOtp] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [serverError, setServerError] = useState("");
   const [currentStep, setCurrentStep] = useState<"form" | "otp" | "success">(
     "form",
@@ -117,6 +124,8 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [customFieldValues, setCustomFieldValues] =
+    useState<LeadCustomFieldValues>({});
 
   const inputStyle = {
     background: "var(--background)",
@@ -134,6 +143,23 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
       setErrors((prev) => ({
         ...prev,
         [field]: "",
+      }));
+    }
+  };
+
+  const handleCustomFieldChange = (
+    fieldId: string,
+    value: LeadCustomFieldValue,
+  ) => {
+    setCustomFieldValues((prev) => ({
+      ...prev,
+      [fieldId]: value,
+    }));
+
+    if (errors[fieldId]) {
+      setErrors((prev) => ({
+        ...prev,
+        [fieldId]: "",
       }));
     }
   };
@@ -165,6 +191,30 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
       newErrors.message = "Message is required";
     }
 
+    leadForm.customFields.forEach((field) => {
+      const value = customFieldValues[field.id];
+
+      if (field.required) {
+        const isEmpty =
+          field.type === "checkbox"
+            ? !value
+            : !String(value || "").trim();
+
+        if (isEmpty) {
+          newErrors[field.id] = `${field.label} is required`;
+          return;
+        }
+      }
+
+      if (
+        field.type === "email" &&
+        value &&
+        !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(String(value))
+      ) {
+        newErrors[field.id] = "Please enter a valid email";
+      }
+    });
+
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -174,6 +224,12 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
     e.preventDefault();
 
     if (!validate()) return;
+
+    const leadCustomFields: LeadCustomFieldValues = {
+      ...customFieldValues,
+      ...(formData.company.trim() ? { companyName: formData.company } : {}),
+      ...(selectedServices.length ? { products: selectedServices } : {}),
+    };
 
     try {
       setLoading(true);
@@ -193,6 +249,7 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
             companyName: formData.company,
             products: selectedServices,
             message: formData.message,
+            customFields: leadCustomFields,
           }),
         },
       );
@@ -221,8 +278,8 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
       setCurrentStep("otp");
 
       onSuccess?.();
-    } catch (error: any) {
-      setServerError(error.message);
+    } catch (error: unknown) {
+      setServerError(getErrorMessage(error, "Failed to send OTP"));
     } finally {
       setLoading(false);
     }
@@ -276,9 +333,10 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
       });
 
       setSelectedServices([]);
+      setCustomFieldValues({});
       setOtp("");
-    } catch (error: any) {
-      setServerError(error.message);
+    } catch (error: unknown) {
+      setServerError(getErrorMessage(error, "OTP verification failed"));
     } finally {
       setOtpLoading(false);
     }
@@ -419,13 +477,7 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
 
                   <div className="h-[2px] w-12 bg-[var(--border)]" />
 
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      showOtpBox
-                        ? "bg-[var(--primary)] text-white"
-                        : "bg-[var(--background)]"
-                    }`}
-                  >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)]">
                     2
                   </div>
 
@@ -452,13 +504,6 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
                 </p>
               </div>
 
-              {/* Success */}
-              {successMessage && (
-                <div className="mb-6 rounded-2xl border border-green-500/30 bg-green-500/10 p-4 text-green-600">
-                  {successMessage}
-                </div>
-              )}
-
               {/* Error */}
               {serverError && (
                 <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-500">
@@ -468,47 +513,66 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
 
               {/* Inputs */}
               <div className="grid gap-5 md:grid-cols-2">
-                <input
-                  type="text"
-                  placeholder="Full Name *"
-                  value={formData.name}
-                  onChange={(e) => handleChange("name", e.target.value)}
-                  className="w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:border-[var(--primary)]"
-                  style={inputStyle}
-                />
-
-                <input
-                  type="email"
-                  placeholder="Email Address *"
-                  value={formData.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  className="w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:border-[var(--primary)]"
-                  style={inputStyle}
-                />
-
-                <div
-                  className="rounded-2xl border px-4 py-4"
-                  style={{
-                    background: "var(--background)",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <PhoneInput
-                    international
-                    defaultCountry="IN"
-                    value={formData.phone}
-                    onChange={(value) => handleChange("phone", value || "")}
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Full Name *"
+                    value={formData.name}
+                    onChange={(e) => handleChange("name", e.target.value)}
+                    className="w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:border-[var(--primary)]"
+                    style={inputStyle}
                   />
+                  {errors.name && (
+                    <p className="mt-2 text-sm text-red-500">{errors.name}</p>
+                  )}
                 </div>
 
-                <input
-                  type="text"
-                  placeholder="Company Name"
-                  value={formData.company}
-                  onChange={(e) => handleChange("company", e.target.value)}
-                  className="w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:border-[var(--primary)]"
-                  style={inputStyle}
-                />
+                <div>
+                  <input
+                    type="email"
+                    placeholder="Email Address *"
+                    value={formData.email}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                    className="w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:border-[var(--primary)]"
+                    style={inputStyle}
+                  />
+                  {errors.email && (
+                    <p className="mt-2 text-sm text-red-500">
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <div
+                    className="rounded-2xl border px-4 py-4"
+                    style={{
+                      background: "var(--background)",
+                      borderColor: "var(--border)",
+                    }}
+                  >
+                    <PhoneInput
+                      international
+                      defaultCountry="IN"
+                      value={formData.phone}
+                      onChange={(value) => handleChange("phone", value || "")}
+                    />
+                  </div>
+                  {errors.phone && (
+                    <p className="mt-2 text-sm text-red-500">{errors.phone}</p>
+                  )}
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Company Name"
+                    value={formData.company}
+                    onChange={(e) => handleChange("company", e.target.value)}
+                    className="w-full rounded-2xl border px-4 py-3 outline-none transition-all focus:border-[var(--primary)]"
+                    style={inputStyle}
+                  />
+                </div>
               </div>
 
               {/* Services */}
@@ -599,7 +663,21 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
                     }),
                   }}
                 />
+                {errors.services && (
+                  <p className="mt-2 text-sm text-red-500">
+                    {errors.services}
+                  </p>
+                )}
               </div>
+
+              <LeadCustomFields
+                fields={leadForm.customFields}
+                values={customFieldValues}
+                errors={errors}
+                inputStyle={inputStyle}
+                loading={leadFormLoading}
+                onChange={handleCustomFieldChange}
+              />
 
               {/* Message */}
               <div className="mt-8">
@@ -611,12 +689,15 @@ export default function LeadForm({ onSuccess }: LeadFormProps) {
                   className="w-full resize-none rounded-2xl border px-4 py-3 outline-none transition-all focus:border-[var(--primary)]"
                   style={inputStyle}
                 />
+                {errors.message && (
+                  <p className="mt-2 text-sm text-red-500">{errors.message}</p>
+                )}
               </div>
 
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading || showOtpBox}
+                disabled={loading || leadFormLoading}
                 className="mt-5 w-full rounded-2xl bg-[var(--primary)] px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl disabled:opacity-60"
               >
                 {loading ? (
