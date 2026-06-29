@@ -303,8 +303,8 @@ export default function AdminLead() {
         "source",
         "status",
         "verified",
-        "company",
-        "budget",
+        "companyName",
+        "address",
       ],
       [
         "Rahul Sharma",
@@ -315,7 +315,7 @@ export default function AdminLead() {
         "new",
         "yes",
         "Acme Pvt Ltd",
-        "50000",
+        "City, State",
       ],
     ];
     const csv = rows

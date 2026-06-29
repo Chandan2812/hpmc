@@ -42,7 +42,6 @@ interface ActivityItem {
 interface Lead {
   _id: string;
   name: string;
-  companyName?: string;
   phone: string;
   email: string;
   leadStatus?: string;
@@ -50,6 +49,7 @@ interface Lead {
   followUpRemark?: string;
   createdAt: string;
   lastActivityAt?: string;
+  customFields?: Record<string, string | number | boolean | string[]>;
   aging?: {
     leadAgeDays: number;
     lastContactDays: number;
@@ -406,7 +406,7 @@ function LeadWorkCard({
             {lead.name}
           </h3>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            {lead.companyName || "No company"}
+            {String(lead.customFields?.companyName) || "No company"}
           </p>
           <div className="mt-4 grid gap-2 text-sm text-[var(--text-secondary)] sm:grid-cols-2">
             <span>{lead.phone}</span>
@@ -506,7 +506,7 @@ function ActionModal({
             </p>
             <h2 className="mt-2 text-2xl font-semibold">{lead.name}</h2>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              {lead.companyName || "No company"}
+              {String(lead.customFields?.companyName) || "No company"}
             </p>
           </div>
           <button

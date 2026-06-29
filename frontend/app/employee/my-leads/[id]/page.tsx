@@ -248,7 +248,6 @@ export default function LeadDetailsPage() {
           <Panel title="Contact Information" icon={<Phone size={18} />}>
             <Info label="Phone" value={lead.phone} />
             <Info label="Email" value={lead.email} />
-            <Info label="Company" value={lead.companyName} />
             <Info
               label="Created"
               value={new Date(lead.createdAt).toLocaleString()}

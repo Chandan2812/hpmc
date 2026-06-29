@@ -630,7 +630,7 @@ export default function Navbar() {
                 className="hidden lg:flex items-center gap-3 bg-[var(--primary)] rounded-full pl-4 pr-1 py-1 group hover:bg-[var(--background)] border-2 border-[var(--primary)] transition-all duration-300"
               >
                 <span className="text-[14px] uppercase font-semibold text-white group-hover:text-[var(--text-primary)]">
-                  Get A Quote
+                  Get In Touch
                 </span>
 
                 <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center group-hover:bg-[var(--primary)] transition">
@@ -864,7 +864,7 @@ export default function Navbar() {
               className="mt-8 flex items-center justify-center gap-4 border-2 border-[var(--primary)] rounded-full py-2 group"
             >
               <span className="text-[14px] uppercase font-semibold text-[var(--text-primary)]">
-                Get A Quote
+                Get In Touch
               </span>
 
               <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center">

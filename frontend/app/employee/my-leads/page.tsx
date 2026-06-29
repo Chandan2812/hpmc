@@ -10,12 +10,14 @@ import {
   PhoneCall,
   RefreshCw,
   Search,
+  StickyNote,
   TrendingDown,
   Trophy,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { FaWhatsapp } from "react-icons/fa";
 
 interface Lead {
   _id: string;
@@ -28,6 +30,12 @@ interface Lead {
   verified?: boolean;
   createdAt: string;
   customFields?: Record<string, string | number | boolean | string[]>;
+  notes?: Note[];
+}
+
+interface Note {
+  text: string;
+  createdAt: string;
 }
 
 export default function MyLeadsPage() {
@@ -38,6 +46,9 @@ export default function MyLeadsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [error, setError] = useState("");
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [note, setNote] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
 
   const fetchLeads = async () => {
     try {
@@ -70,6 +81,42 @@ export default function MyLeadsPage() {
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
+  const saveNote = async () => {
+    if (!selectedLead || !note.trim()) return;
+
+    try {
+      setSavingNote(true);
+
+      const token = localStorage.getItem("employeeToken");
+
+      const res = await fetch(`${API_BASE}/employee/${selectedLead._id}/note`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          text: note,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+
+      setSelectedLead(null);
+      setNote("");
+
+      await fetchLeads();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to save note");
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
   const filteredLeads = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -77,7 +124,9 @@ export default function MyLeadsPage() {
       const matchesSearch =
         !query ||
         lead.name.toLowerCase().includes(query) ||
-        (lead.companyName || "").toLowerCase().includes(query) ||
+        (String(lead.customFields?.companyName ?? "") || "")
+          .toLowerCase()
+          .includes(query) ||
         lead.email.toLowerCase().includes(query) ||
         lead.phone.includes(query);
 
@@ -227,6 +276,7 @@ export default function MyLeadsPage() {
                   "Lead",
                   "Contact",
                   "Address",
+                  "Latest Note",
                   "Status",
                   "Submitted",
                   "Actions",
@@ -254,7 +304,9 @@ export default function MyLeadsPage() {
                       {lead.name}
                     </Link>
                     <p className="mt-1 max-w-[260px] truncate text-xs text-[var(--text-secondary)]">
-                      {lead.companyName || lead.message || "No company detail"}
+                      {String(
+                        lead.customFields?.companyName ?? "No company detail",
+                      )}
                     </p>
                   </td>
                   <td className="px-5 py-4 text-sm">
@@ -272,6 +324,49 @@ export default function MyLeadsPage() {
                         : String(lead.customFields?.address ?? "-")}
                     </p>
                   </td>
+
+                  <td className="w-[320px] px-5 py-4">
+                    {lead.notes?.length ? (
+                      <>
+                        <div>
+                          <p className="line-clamp-2 text-sm font-medium text-[var(--text-primary)]">
+                            {lead.notes?.length
+                              ? lead.notes[lead.notes.length - 1].text
+                              : "No notes yet"}
+                          </p>
+
+                          {lead.notes?.length && (
+                            <button
+                              onClick={() => {
+                                setSelectedLead(lead);
+                                setNote("");
+                              }}
+                              className="mt-2 text-xs font-semibold text-[var(--primary)] hover:underline"
+                            >
+                              Read More
+                            </button>
+                          )}
+                        </div>
+
+                        <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                          {new Date(
+                            lead.notes[lead.notes.length - 1].createdAt,
+                          ).toLocaleString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-[var(--text-secondary)]">
+                        No notes yet
+                      </p>
+                    )}
+                  </td>
+
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <span
@@ -294,20 +389,13 @@ export default function MyLeadsPage() {
                   <td className="px-5 py-4">
                     <div className="flex gap-2">
                       <a
-                        href={`tel:${lead.phone}`}
-                        className="grid h-9 w-9 place-items-center rounded-lg text-green-600 hover:bg-green-500/10"
-                        title="Call"
-                      >
-                        <Phone size={16} />
-                      </a>
-                      <a
                         href={`https://wa.me/${lead.phone.replace(/\D/g, "")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="grid h-9 w-9 place-items-center rounded-lg text-emerald-600 hover:bg-emerald-500/10"
                         title="WhatsApp"
                       >
-                        <MessageCircle size={16} />
+                        <FaWhatsapp size={16} />
                       </a>
                       <a
                         href={`mailto:${lead.email}`}
@@ -316,6 +404,7 @@ export default function MyLeadsPage() {
                       >
                         <Mail size={16} />
                       </a>
+
                       <Link
                         href={`/employee/my-leads/${lead._id}`}
                         className="grid h-9 w-9 place-items-center rounded-lg text-[var(--primary)] hover:bg-[var(--primary)]/10"
@@ -350,6 +439,20 @@ export default function MyLeadsPage() {
           {error}
         </div>
       )}
+
+      {selectedLead && (
+        <NoteModal
+          lead={selectedLead}
+          note={note}
+          saving={savingNote}
+          onNoteChange={setNote}
+          onClose={() => {
+            setSelectedLead(null);
+            setNote("");
+          }}
+          onSubmit={saveNote}
+        />
+      )}
     </section>
   );
 }
@@ -370,6 +473,134 @@ function StatCard({
       </div>
       <h3 className="text-2xl font-bold md:text-3xl">{value}</h3>
       <p className="mt-1 text-sm text-[var(--text-secondary)]">{title}</p>
+    </div>
+  );
+}
+
+function NoteModal({
+  lead,
+  note,
+  saving,
+  onNoteChange,
+  onClose,
+  onSubmit,
+}: {
+  lead: Lead;
+  note: string;
+  saving: boolean;
+  onNoteChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm">
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-2xl">
+          {/* Header */}
+          <div className="flex items-start justify-between border-b border-[var(--border)] p-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[4px] text-[var(--primary)]">
+                Add Note
+              </p>
+
+              <h2 className="mt-2 text-2xl font-bold text-[var(--text-primary)]">
+                {lead.name}
+              </h2>
+
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                {String(lead.customFields?.companyName ?? "No company")}
+              </p>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="rounded-xl border border-[var(--border)] px-4 py-2 text-sm transition hover:bg-[var(--background-secondary)]"
+            >
+              Close
+            </button>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* Recent Notes */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+                  Recent Notes
+                </h3>
+
+                <span className="rounded-full bg-[var(--primary)]/10 px-3 py-1 text-xs font-medium text-[var(--primary)]">
+                  {lead.notes?.length || 0} Notes
+                </span>
+              </div>
+
+              <div className="max-h-64 space-y-3 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] p-3">
+                {lead.notes?.length ? (
+                  [...lead.notes]
+                    .reverse()
+                    .slice(0, 3)
+                    .map((item, index) => (
+                      <div
+                        key={index}
+                        className="rounded-xl bg-[var(--card)] p-4 shadow-sm"
+                      >
+                        <p className="mb-2 text-xs font-medium text-[var(--text-secondary)]">
+                          {new Date(item.createdAt).toLocaleString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+
+                        <p className="whitespace-pre-wrap text-sm leading-6 text-[var(--text-primary)]">
+                          {item.text}
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center text-sm text-[var(--text-secondary)]">
+                    No notes available.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Add Note */}
+            <div className="mt-8">
+              <h3 className="mb-3 text-lg font-semibold text-[var(--text-primary)]">
+                Add New Note
+              </h3>
+
+              <textarea
+                value={note}
+                onChange={(e) => onNoteChange(e.target.value)}
+                placeholder="Write call summary, customer requirements, follow-up discussion, next action..."
+                className="h-40 w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] p-4 outline-none transition focus:border-[var(--primary)]"
+              />
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-end gap-3 border-t border-[var(--border)] p-6">
+            <button
+              onClick={onClose}
+              className="rounded-xl border border-[var(--border)] px-5 py-2 font-medium transition hover:bg-[var(--background-secondary)]"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={onSubmit}
+              disabled={saving || !note.trim()}
+              className="rounded-xl bg-[var(--primary)] px-6 py-2 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? "Saving..." : "Save Note"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

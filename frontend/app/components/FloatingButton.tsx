@@ -11,11 +11,22 @@ import {
 } from "lucide-react";
 import PopupForm from "./Popup";
 import DemoPopup from "./PopupDemo";
+import { FaWhatsapp } from "react-icons/fa";
 
 export default function FloatingContact() {
   const [open, setOpen] = useState(false);
   const [openPopup, setOpenPopup] = useState(false);
   const [openPopup2, setOpenPopup2] = useState(false);
+
+  const whatsappMessage = encodeURIComponent(`Hello HPMC Team,
+
+I recently visited your website and would like to know more about your manufacturing solutions and services.
+
+Could you please share more information and guide me further?
+
+Looking forward to your response.
+
+Thank you.`);
 
   return (
     <>
@@ -46,7 +57,7 @@ export default function FloatingContact() {
 
             {/* WhatsApp */}
             <a
-              href="https://wa.me/919560596392"
+              href={`https://wa.me/919560596392?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 border-b px-6 py-4 transition-all duration-300 hover:bg-[var(--muted)]"
@@ -213,7 +224,7 @@ export default function FloatingContact() {
             boxShadow: "var(--shadow-primary)",
           }}
         >
-          {open ? <X size={26} /> : <Headphones size={26} />}
+          {open ? <X size={26} /> : <FaWhatsapp size={26} />}
         </button>
       </div>
 
@@ -228,7 +239,7 @@ export default function FloatingContact() {
         >
           {/* WhatsApp */}
           <a
-            href="https://wa.me/919560596392"
+            href={`https://wa.me/919560596392?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-1 items-center justify-center gap-2 py-4 font-medium"
@@ -236,7 +247,7 @@ export default function FloatingContact() {
               color: "var(--primary)",
             }}
           >
-            <MessageCircle size={18} />
+            <FaWhatsapp size={18} />
             WhatsApp
           </a>
 
