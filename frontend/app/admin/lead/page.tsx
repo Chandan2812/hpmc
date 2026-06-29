@@ -20,6 +20,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RxCrossCircled } from "react-icons/rx";
 import { useSettings } from "../../context/SettingsContext";
+import { FaWhatsapp } from "react-icons/fa";
 
 type LeadStatus =
   | "new"
@@ -590,7 +591,14 @@ export default function AdminLead() {
                     className="border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--background-secondary)]"
                   >
                     <td className="px-5 py-4">
-                      <p className="font-semibold">{lead.name}</p>
+                      <p className="font-semibold text-[var(--text-primary)] hover:text-[var(--primary)]">
+                        {lead.name}
+                      </p>
+                      <p className="mt-1 max-w-[260px] truncate text-xs text-[var(--text-secondary)]">
+                        {String(
+                          lead.customFields?.companyName ?? "No company detail",
+                        )}
+                      </p>
                     </td>
                     <td className="px-5 py-4 text-sm">
                       <p>{lead.phone}</p>
@@ -673,7 +681,7 @@ export default function AdminLead() {
                           className="grid h-9 w-9 place-items-center rounded-lg text-emerald-600 hover:bg-emerald-500/10"
                           title="WhatsApp"
                         >
-                          <MessageCircle size={16} />
+                          <FaWhatsapp size={16} />
                         </a>
                         <button
                           onClick={() => setSelectedLead(lead)}
