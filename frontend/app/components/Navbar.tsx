@@ -21,16 +21,66 @@ const productsData = [
         link: "/single-screw-extruder",
       },
       {
-        name: "Twin Screw Extruder",
+        name: "Conical Twin Screw Extruder",
         link: "/twin-screw-extruder",
       },
       {
-        name: "PVC Conduit Pipe Plant (Two Pipes)",
+        name: "PVC Conduit Pipe Plant ",
+        link: "#",
+      },
+      {
+        name: "PVC Conduit Pipe Plant (Dual Pipes)",
         link: "/pvc-conduit-pipe-plant-two-pipes",
       },
       {
         name: "PVC Conduit Pipe Plant (Four Pipes)",
         link: "/pvc-conduit-pipe-plant-four-pipes",
+      },
+    ],
+  },
+  {
+    title: "Plastic Recycling Plant",
+    children: [
+      {
+        name: "Two Stage Recycling Plant",
+        link: "/two-stage-recycling-plant",
+      },
+      {
+        name: "Vented Recycling Plant",
+        link: "/vented-recycling-plant",
+      },
+      {
+        name: "Recycling Plant With Compactor",
+        link: "/recycling-plant-with-compactor",
+      },
+      {
+        name: "Recycling Plant With Compactor",
+        link: "/recycling-plant-with-compactor",
+      },
+      {
+        name: "Co-Rotating Twin Screw Extruder",
+        link: "#",
+      },
+    ],
+  },
+  {
+    title: "Co-Rotating Twin Screw Extruder",
+    children: [
+      {
+        name: "Single + Twin Screw Extruder ",
+        link: "#",
+      },
+      {
+        name: "Corotating Twin Screw Extruder for Compounding & Recycling",
+        link: "/corotating-twin-screw-extruder-for-compounding-&-recycling",
+      },
+      {
+        name: "Corotating Triple Screw Extruder for Compounding & Recycling (Engineering Plastic)",
+        link: "/corotating-triple-screw-extruder-for-compounding-&-recycling",
+      },
+      {
+        name: "Soft Cable Grade PVC Compounding Plant",
+        link: "/soft-cable-grade-pvc-compounding-plant",
       },
     ],
   },
@@ -49,8 +99,30 @@ const productsData = [
     title: "PVC Compounding Extruder",
     children: [
       {
-        name: "Twin Screw Plant for PVC Compounding",
+        name: "Single Screw Plant for PVC Compounding",
+        link: "#",
+      },
+      {
+        name: "Conical Twin Screw Plant for PVC Compounding",
         link: "/pvc-compounding",
+      },
+      {
+        name: "Co-Rotating Two Stage Extruder",
+        link: "#",
+      },
+    ],
+  },
+
+  {
+    title: "PVC Profile Extruder",
+    children: [
+      {
+        name: "Single Screw Plant for PVC Profile",
+        link: "/single-screw-plant-for-pvc-profile",
+      },
+      {
+        name: "Conical Twin Screw Plant for PVC Profile",
+        link: "/twin-screw-plant-for-pvc-profile",
       },
     ],
   },
@@ -58,45 +130,16 @@ const productsData = [
     title: "PPR Pipe Extruder",
     children: [
       {
-        name: "Single Screw Plant for PPR Pipe",
+        name: "Single Screw Plant for Single Layer PPR Pipe",
         link: "/ppr-pipe-extruder",
       },
-    ],
-  },
-  {
-    title: "Plastic Pelletizing Plant",
-    children: [
       {
-        name: "Two Stage Recycling Plant",
-        link: "/two-stage-recycling-plant",
-      },
-      {
-        name: "Vented Recycling Plant",
-        link: "/vented-recycling-plant",
-      },
-      {
-        name: "Recycling Plant With Compactor",
-        link: "/recycling-plant-with-compactor",
+        name: "Single Screw Plant for Three Layer PPR Pipe",
+        link: "#",
       },
     ],
   },
-  {
-    title: "Co-Rotating Twin Screw Extruder",
-    children: [
-      {
-        name: "Soft Cable Grade PVC Compounding Plant",
-        link: "/soft-cable-grade-pvc-compounding-plant",
-      },
-      {
-        name: "Corotating Twin Screw Extruder for Compounding & Recycling",
-        link: "/corotating-twin-screw-extruder-for-compounding-&-recycling",
-      },
-      {
-        name: "Corotating Triple Screw Extruder for Compounding & Recycling (Engineering Plastic)",
-        link: "/corotating-triple-screw-extruder-for-compounding-&-recycling",
-      },
-    ],
-  },
+
   {
     title: "Cable Extruder",
     children: [
@@ -115,19 +158,7 @@ const productsData = [
       },
     ],
   },
-  {
-    title: "PVC Profile Extruder",
-    children: [
-      {
-        name: "Single Screw Plant for PVC Profile",
-        link: "/single-screw-plant-for-pvc-profile",
-      },
-      {
-        name: "Twin Screw Plant for PVC Profile",
-        link: "/twin-screw-plant-for-pvc-profile",
-      },
-    ],
-  },
+
   {
     title: "Garden Pipe Extruder",
     children: [
@@ -135,13 +166,17 @@ const productsData = [
         name: "Single Screw Plant for Garden Pipe",
         link: "/single-screw-plant-for-garden-pipe",
       },
+      {
+        name: "Three Layer Single Screw Plant for Garden Pipe",
+        link: "#",
+      },
     ],
   },
   {
     title: "LLDPE Pipe Extruder",
     children: [
       {
-        name: "LLDPE Pipe Plant",
+        name: "LLDPE Lay Flat Pipe Plant",
         link: "/lldpe-pipe-plant",
       },
     ],
@@ -150,8 +185,30 @@ const productsData = [
     title: "CPVC Pipe Extruder",
     children: [
       {
-        name: "Twin Screw Plant for CPVC Pipe",
+        name: "Conical Twin Screw Plant for CPVC Pipe",
         link: "/twin-screw-plant-for-cpvc-pipe",
+      },
+      {
+        name: "Conical Twin Screw Plant for Dual CPVC Pipe",
+        link: "#",
+      },
+    ],
+  },
+  {
+    title: "WPC Profile Plant",
+    children: [
+      {
+        name: "WPC Profile (Chokhat) Plant",
+        link: "#",
+      },
+    ],
+  },
+  {
+    title: "WPC Board Plant",
+    children: [
+      {
+        name: "WPC Board Plant",
+        link: "#",
       },
     ],
   },
@@ -474,7 +531,7 @@ export default function Navbar() {
 
                       {/* RIGHT */}
                       {activeDropdown === index && (
-                        <div className="absolute left-full top-0 w-[270px] bg-[var(--card)] shadow-[var(--shadow-primary)] border border-[var(--border)]">
+                        <div className="absolute left-full top-0 w-[350px] bg-[var(--card)] shadow-[var(--shadow-primary)] border border-[var(--border)]">
                           {item.children.map((child, i) => (
                             <Link
                               href={child.link}
@@ -526,7 +583,7 @@ export default function Navbar() {
               </div>
 
               {/* GALLERY */}
-              {/* <Link
+              <Link
                 href="/gallery"
                 className={`relative h-full flex items-center text-[14px] uppercase font-semibold tracking-wide transition ${
                   pathname === "/gallery"
@@ -538,7 +595,7 @@ export default function Navbar() {
                 {pathname === "/gallery" && (
                   <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[var(--primary)] rounded-full" />
                 )}
-              </Link> */}
+              </Link>
 
               {/* BLOG */}
               <Link
@@ -683,7 +740,7 @@ export default function Navbar() {
                 onClick={() => setMobileCompany(!mobileCompany)}
                 className="w-full flex items-center justify-between py-4 text-[var(--text-primary)] font-semibold uppercase text-sm"
               >
-                The Company
+                Company
                 <div className="w-6 h-6 flex items-center justify-center">
                   {mobileCompany ? "-" : "+"}
                 </div>
@@ -792,12 +849,12 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* <Link
+            <Link
               href="/gallery"
               className="py-4 text-[var(--text-primary)] font-semibold uppercase text-sm"
             >
               Gallery
-            </Link> */}
+            </Link>
 
             <Link
               href="/blog"
