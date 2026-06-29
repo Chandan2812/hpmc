@@ -8,6 +8,7 @@ import {
   Mail,
   Paperclip,
   Send,
+  Sparkles,
   Trash2,
   UploadCloud,
   Users,
@@ -41,6 +42,16 @@ export default function CreateNewsletterModal({ onClose, onSuccess }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [creationMode, setCreationMode] = useState<"manual" | "ai">("manual");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [aiPrompt, setAiPrompt] = useState({
+    topic: "",
+    audience: "customers, prospects, industry partners",
+    tone: "professional and helpful",
+    keyPoints: "",
+    callToAction: "Contact HPMC for more information",
+  });
 
   const plainContent = useMemo(
     () =>
@@ -57,6 +68,40 @@ export default function CreateNewsletterModal({ onClose, onSuccess }: Props) {
   }, [plainContent, subject]);
 
   const totalAttachmentSize = files.reduce((sum, file) => sum + file.size, 0);
+
+  const handleGenerateWithAI = async () => {
+    if (!aiPrompt.topic.trim() || aiGenerating) return;
+
+    try {
+      setAiGenerating(true);
+      setAiError("");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/newsletter/ai/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(aiPrompt),
+        },
+      );
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Failed to generate newsletter");
+      }
+
+      setSubject(json.newsletter?.subject || "");
+      setContent(json.newsletter?.content || "");
+      setCreationMode("manual");
+    } catch (err) {
+      setAiError(
+        err instanceof Error ? err.message : "Failed to generate newsletter",
+      );
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   const handleSubmit = async () => {
     try {
@@ -200,6 +245,125 @@ export default function CreateNewsletterModal({ onClose, onSuccess }: Props) {
               <p>{error}</p>
             </div>
           )}
+
+          <section className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--background-secondary)] p-5">
+            <div className="mb-5 flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <p className="mb-1 text-[10px] uppercase tracking-[3px] text-[var(--primary)]">
+                  Creation Mode
+                </p>
+                <h3 className="font-serif text-xl text-[var(--text-primary)]">
+                  Manual or AI Assisted
+                </h3>
+              </div>
+            </div>
+
+            <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2">
+              <button
+                type="button"
+                onClick={() => setCreationMode("manual")}
+                className={`h-11 rounded-xl font-medium transition ${
+                  creationMode === "manual"
+                    ? "bg-[var(--primary)] text-white"
+                    : "text-[var(--text-primary)] hover:bg-[var(--background-secondary)]"
+                }`}
+              >
+                Manual
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreationMode("ai")}
+                className={`h-11 rounded-xl font-medium transition ${
+                  creationMode === "ai"
+                    ? "bg-[var(--primary)] text-white"
+                    : "text-[var(--text-primary)] hover:bg-[var(--background-secondary)]"
+                }`}
+              >
+                Generate with AI
+              </button>
+            </div>
+
+            {creationMode === "ai" && (
+              <div className="grid gap-4">
+                {aiError && (
+                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-500">
+                    {aiError}
+                  </div>
+                )}
+
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+                    Newsletter Topic
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={aiPrompt.topic}
+                    onChange={(event) =>
+                      setAiPrompt((prev) => ({
+                        ...prev,
+                        topic: event.target.value,
+                      }))
+                    }
+                    placeholder="Example: Announce new extrusion machinery updates and service support"
+                    className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <AiInput
+                    label="Audience"
+                    value={aiPrompt.audience}
+                    onChange={(value) =>
+                      setAiPrompt((prev) => ({ ...prev, audience: value }))
+                    }
+                    placeholder="Customers, prospects, partners"
+                  />
+                  <AiInput
+                    label="Tone"
+                    value={aiPrompt.tone}
+                    onChange={(value) =>
+                      setAiPrompt((prev) => ({ ...prev, tone: value }))
+                    }
+                    placeholder="Professional and helpful"
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <AiInput
+                    label="Key Points"
+                    value={aiPrompt.keyPoints}
+                    onChange={(value) =>
+                      setAiPrompt((prev) => ({ ...prev, keyPoints: value }))
+                    }
+                    placeholder="New machines, support, maintenance tips"
+                  />
+                  <AiInput
+                    label="Call To Action"
+                    value={aiPrompt.callToAction}
+                    onChange={(value) =>
+                      setAiPrompt((prev) => ({
+                        ...prev,
+                        callToAction: value,
+                      }))
+                    }
+                    placeholder="Contact HPMC for a consultation"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGenerateWithAI}
+                  disabled={aiGenerating || !aiPrompt.topic.trim()}
+                  className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-5 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {aiGenerating ? "Generating draft..." : "Generate Draft"}
+                </button>
+              </div>
+            )}
+          </section>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
             <div className="space-y-6">
@@ -397,6 +561,33 @@ function ChecklistItem({ done, label }: { done: boolean; label: string }) {
         {done && <Check size={13} />}
       </span>
       <span className="text-sm text-[var(--text-primary)]">{label}</span>
+    </div>
+  );
+}
+
+function AiInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <div>
+      <label className="mb-2 block text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--primary)]"
+      />
     </div>
   );
 }

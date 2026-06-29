@@ -37,6 +37,18 @@ interface BlogPost {
   faqs?: { question: string; answer: string }[];
 }
 
+interface GeneratedBlog {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  tags: string;
+  coverImage?: string;
+  coverImageAlt: string;
+  faqs?: { question: string; answer: string }[];
+}
+
 interface Props {
   onClose: () => void;
   onSuccess: () => void;
@@ -54,6 +66,7 @@ function getInitialFormData(existingBlog: BlogPost | null) {
       ? existingBlog.tags.join(", ")
       : existingBlog?.tags || "",
     coverImageAlt: existingBlog?.coverImageAlt || "",
+    coverImageUrl: "",
     coverImage: null as File | null,
   };
 }
@@ -73,6 +86,17 @@ const AddBlog = ({ onClose, onSuccess, existingBlog = null }: Props) => {
     existingBlog?.coverImage || null,
   );
   const [submitting, setSubmitting] = useState(false);
+  const [creationMode, setCreationMode] = useState<"manual" | "ai">("manual");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [aiPrompt, setAiPrompt] = useState({
+    topic: "",
+    keywords: "",
+    tone: "professional and helpful",
+    audience: "factory owners, purchase teams, plant managers",
+    length: "medium",
+    generateImage: true,
+  });
 
   useEffect(() => {
     return () => {
@@ -118,6 +142,7 @@ const AddBlog = ({ onClose, onSuccess, existingBlog = null }: Props) => {
     if (!file) return;
 
     setFormData((prev) => ({ ...prev, coverImage: file }));
+    setFormData((prev) => ({ ...prev, coverImageUrl: "" }));
     setPreview((currentPreview) => {
       if (currentPreview?.startsWith("blob:")) {
         URL.revokeObjectURL(currentPreview);
@@ -128,6 +153,65 @@ const AddBlog = ({ onClose, onSuccess, existingBlog = null }: Props) => {
 
   const sanitizeHtml = (html: string) =>
     html.replace(/&nbsp;/g, " ").replace(/<wbr\s*\/?>/gi, "").trim();
+
+  const applyGeneratedBlog = (blog: GeneratedBlog) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: blog.title || prev.title,
+      slug: blog.slug || prev.slug,
+      excerpt: blog.excerpt || prev.excerpt,
+      content: blog.content || prev.content,
+      author: blog.author || prev.author || "HPMC Team",
+      tags: blog.tags || prev.tags,
+      coverImageAlt: blog.coverImageAlt || prev.coverImageAlt,
+      coverImageUrl: blog.coverImage || "",
+      coverImage: null,
+    }));
+
+    if (blog.coverImage) {
+      setPreview((currentPreview) => {
+        if (currentPreview?.startsWith("blob:")) {
+          URL.revokeObjectURL(currentPreview);
+        }
+        return blog.coverImage || null;
+      });
+    }
+
+    if (blog.faqs?.length) {
+      setFaqs(blog.faqs);
+    }
+  };
+
+  const handleGenerateWithAI = async () => {
+    if (!aiPrompt.topic.trim() || aiGenerating) return;
+
+    try {
+      setAiGenerating(true);
+      setAiError("");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/blog/ai/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(aiPrompt),
+        },
+      );
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || "Failed to generate blog");
+      }
+
+      applyGeneratedBlog(result.blog);
+      setCreationMode("manual");
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : "AI generation failed");
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -230,6 +314,157 @@ const AddBlog = ({ onClose, onSuccess, existingBlog = null }: Props) => {
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto p-5 md:p-8">
+            {!existingBlog && (
+              <Panel
+                eyebrow="Creation Mode"
+                title="Manual or AI Assisted"
+                icon={<Sparkles size={18} />}
+              >
+                <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-[var(--border)] bg-[var(--background-secondary)] p-2">
+                  <button
+                    type="button"
+                    onClick={() => setCreationMode("manual")}
+                    className={`h-11 rounded-xl font-medium transition ${
+                      creationMode === "manual"
+                        ? "bg-[var(--primary)] text-white"
+                        : "text-[var(--text-primary)] hover:bg-[var(--card)]"
+                    }`}
+                  >
+                    Manual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreationMode("ai")}
+                    className={`h-11 rounded-xl font-medium transition ${
+                      creationMode === "ai"
+                        ? "bg-[var(--primary)] text-white"
+                        : "text-[var(--text-primary)] hover:bg-[var(--card)]"
+                    }`}
+                  >
+                    Generate with AI
+                  </button>
+                </div>
+
+                {creationMode === "ai" && (
+                  <div className="grid gap-4">
+                    {aiError && (
+                      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-500">
+                        {aiError}
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="mb-2 block text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+                        Blog Topic
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={aiPrompt.topic}
+                        onChange={(event) =>
+                          setAiPrompt((prev) => ({
+                            ...prev,
+                            topic: event.target.value,
+                          }))
+                        }
+                        placeholder="Example: Benefits of PVC pipe extrusion machines for modern manufacturing"
+                        className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] p-4 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-secondary)] focus:ring-2 focus:ring-[var(--primary)]"
+                      />
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <InputField
+                        label="Keywords"
+                        value={aiPrompt.keywords}
+                        onChange={(event) =>
+                          setAiPrompt((prev) => ({
+                            ...prev,
+                            keywords: event.target.value,
+                          }))
+                        }
+                        placeholder="PVC pipe plant, extrusion machine, HPMC"
+                      />
+                      <InputField
+                        label="Audience"
+                        value={aiPrompt.audience}
+                        onChange={(event) =>
+                          setAiPrompt((prev) => ({
+                            ...prev,
+                            audience: event.target.value,
+                          }))
+                        }
+                        placeholder="Factory owners, purchase teams"
+                      />
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <InputField
+                        label="Tone"
+                        value={aiPrompt.tone}
+                        onChange={(event) =>
+                          setAiPrompt((prev) => ({
+                            ...prev,
+                            tone: event.target.value,
+                          }))
+                        }
+                        placeholder="Professional"
+                      />
+                      <div>
+                        <label className="mb-2 block text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+                          Length
+                        </label>
+                        <select
+                          value={aiPrompt.length}
+                          onChange={(event) =>
+                            setAiPrompt((prev) => ({
+                              ...prev,
+                              length: event.target.value,
+                            }))
+                          }
+                          className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] px-4 text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                        >
+                          <option value="short">Short</option>
+                          <option value="medium">Medium</option>
+                          <option value="long">Long</option>
+                        </select>
+                      </div>
+                      <label className="flex h-11 items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--background-secondary)] px-4">
+                        <span className="text-sm font-medium text-[var(--text-primary)]">
+                          Generate image
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={aiPrompt.generateImage}
+                          onChange={(event) =>
+                            setAiPrompt((prev) => ({
+                              ...prev,
+                              generateImage: event.target.checked,
+                            }))
+                          }
+                          className="h-5 w-5 accent-[var(--primary)]"
+                        />
+                      </label>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleGenerateWithAI}
+                      disabled={aiGenerating || !aiPrompt.topic.trim()}
+                      className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-5 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {aiGenerating ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : (
+                        <Sparkles size={18} />
+                      )}
+                      {aiGenerating
+                        ? "Generating draft..."
+                        : "Generate Blog Draft"}
+                    </button>
+                  </div>
+                )}
+              </Panel>
+            )}
+
             <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
               <div className="space-y-6">
                 <Panel
@@ -349,7 +584,7 @@ const AddBlog = ({ onClose, onSuccess, existingBlog = null }: Props) => {
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
-                      required={!existingBlog}
+                      required={!existingBlog && !formData.coverImageUrl}
                       className="hidden"
                     />
                   </label>

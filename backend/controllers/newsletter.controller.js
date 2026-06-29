@@ -3,6 +3,132 @@ const Subscriber = require("../models/subscriber.model");
 const sendEmail = require("../utils/sendEmail");
 const cloudinaryToBrevoAttachment = require("../utils/attachments");
 
+const OPENAI_API_URL = "https://api.openai.com/v1";
+
+const stripCodeFence = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/```$/i, "")
+    .trim();
+
+const callOpenAI = async (path, payload) => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not configured");
+  }
+
+  const response = await fetch(`${OPENAI_API_URL}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.error?.message || data.message || "OpenAI request failed",
+    );
+  }
+
+  return data;
+};
+
+const generateNewsletterDraft = async ({
+  topic,
+  audience,
+  tone,
+  keyPoints,
+  callToAction,
+}) => {
+  const model = process.env.OPENAI_TEXT_MODEL || "gpt-4o-mini";
+
+  const data = await callOpenAI("/chat/completions", {
+    model,
+    temperature: 0.7,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content:
+          "You create concise, professional HTML email newsletters for HPMC. Return only valid JSON.",
+      },
+      {
+        role: "user",
+        content: `
+Create a newsletter draft.
+
+Topic: ${topic}
+Audience: ${audience || "customers, prospects, industry partners"}
+Tone: ${tone || "professional and helpful"}
+Key points: ${keyPoints || "latest updates, useful insights, product/service value"}
+Call to action: ${callToAction || "Contact HPMC for more information"}
+
+Return JSON with this exact shape:
+{
+  "subject": "short email subject",
+  "content": "HTML email body using h2, h3, p, ul, li, strong, a tags only"
+}
+
+The HTML should include:
+- A clear opening
+- 2-4 useful sections
+- Bullet points where helpful
+- A polite call-to-action
+- No markdown, no html/head/body wrapper, no unsubscribe text.
+        `.trim(),
+      },
+    ],
+  });
+
+  const content = data.choices?.[0]?.message?.content;
+  const parsed = JSON.parse(stripCodeFence(content));
+
+  return {
+    subject: parsed.subject || topic,
+    content: parsed.content || "",
+  };
+};
+
+/* ============================
+   GENERATE NEWSLETTER WITH AI
+=============================== */
+exports.generateNewsletterWithAI = async (req, res) => {
+  try {
+    const { topic, audience, tone, keyPoints, callToAction } = req.body;
+
+    if (!topic || !String(topic).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Topic is required",
+      });
+    }
+
+    const newsletter = await generateNewsletterDraft({
+      topic: String(topic).trim(),
+      audience,
+      tone,
+      keyPoints,
+      callToAction,
+    });
+
+    return res.status(200).json({
+      success: true,
+      newsletter,
+    });
+  } catch (error) {
+    console.error("AI NEWSLETTER GENERATION ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to generate newsletter with AI",
+    });
+  }
+};
+
 /* ============================
    CREATE & SEND NEWSLETTER
 =============================== */

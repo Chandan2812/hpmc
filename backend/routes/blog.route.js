@@ -10,6 +10,9 @@ const blogController = require("../controllers/blog.controller");
 // Create blog
 router.post("/add", upload.single("coverImage"), blogController.createBlog);
 
+// Generate blog draft with AI
+router.post("/ai/generate", blogController.generateBlogWithAI);
+
 // View all blogs
 router.get("/viewblog", blogController.getAllBlogs);
 
