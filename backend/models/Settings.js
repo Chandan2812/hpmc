@@ -76,6 +76,11 @@ const settingsSchema = new mongoose.Schema({
       default: true,
     },
 
+    gallery: {
+      type: Boolean,
+      default: true,
+    },
+
     agents: {
       type: Boolean,
       default: true,

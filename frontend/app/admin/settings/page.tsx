@@ -42,6 +42,7 @@ const moduleCategories = [
       { key: "subscribers", label: "Subscribers" },
       { key: "newsletter", label: "Newsletter" },
       { key: "blogs", label: "Blogs" },
+      { key: "gallery", label: "Gallery" },
     ],
   },
   {

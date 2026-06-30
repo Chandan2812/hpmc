@@ -23,6 +23,7 @@ app.use("/job-application", require("./routes/jobApplication.route"));
 app.use("/employee", require("./routes/employee.routes"));
 app.use("/api/settings", settingsRoutes);
 app.use("/analytics", require("./routes/analytics.route"));
+app.use("/gallery", require("./routes/gallery.route"));
 
 app.get("/", (req, res) => {
   res.status(200).send("API LIVE 🚀");

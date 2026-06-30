@@ -9,6 +9,7 @@ import {
   CalendarDays,
   Clock3,
   FileCheck,
+  Images,
   Mail,
   MonitorPlay,
   Newspaper,
@@ -40,6 +41,7 @@ type ModuleKey =
   | "testimonials"
   | "newsletter"
   | "blogs"
+  | "gallery"
   | "agents"
   | "vendors"
   | "openings"
@@ -104,6 +106,7 @@ const EMPTY_COLLECTIONS: DashboardCollections = {
   testimonials: [],
   newsletter: [],
   blogs: [],
+  gallery: [],
   agents: [],
   vendors: [],
   openings: [],
@@ -182,6 +185,16 @@ const MODULES: ModuleConfig[] = [
     icon: <Newspaper size={19} />,
     color: "pink",
     subtitle: (items) => `${countThisMonth(items)} this month`,
+  },
+  {
+    key: "gallery",
+    label: "Gallery",
+    singular: "Gallery Album",
+    endpoint: "gallery?all=true",
+    href: "/admin/gallery",
+    icon: <Images size={19} />,
+    color: "violet",
+    subtitle: (items) => `${items.filter((item) => item.isActive !== false).length} active`,
   },
   {
     key: "agents",
