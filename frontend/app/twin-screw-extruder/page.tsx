@@ -25,17 +25,17 @@ import "swiper/css";
 import DemoPopup from "../components/PopupDemo";
 
 const galleryImages = [
-  "/product.jpg",
-  "/imag1.png",
-  "/product.jpg",
-  "/product.jpg",
+  "/products/conical-twin-screw-extruder.jpg",
+  "/products/tse1.jpg",
+  "/products/tse2.jpg",
+  "/products/tse3.jpg",
 ];
 
 const features = [
   {
     title: "Forged Alloy Steel Die Head",
     desc: "Manufactured from high carbon content forged alloy steel, the die head delivers superior durability, longer service life, and reliable performance for PVC pipe production.",
-    image: "/product.jpg",
+    image: "/products/sse1.jpg",
     highlights: [
       "Forged alloy steel construction",
       "High carbon content",
@@ -46,7 +46,7 @@ const features = [
   {
     title: "Spray Cooling Bath",
     desc: "Designed for intensive pipe cooling using multiple self-cleaning spray nozzles. The tank features axial adjustment on slide rails with locking arrangements and an acrylic transparent cover for easy inspection.",
-    image: "/product.jpg",
+    image: "/products/tse1.jpg",
     highlights: [
       "Self-cleaning spray nozzles",
       "Axial tank adjustment",
@@ -57,7 +57,7 @@ const features = [
   {
     title: "Pneumatic Caterpuller Haul-Off",
     desc: "Twin and multi-track haul-off system with pneumatic pressure adjustment and AC frequency variable drive synchronization. Suitable for pipe sizes ranging from 20mm to 315mm.",
-    image: "/product.jpg",
+    image: "/products/tse2.jpg",
     highlights: [
       "20mm–315mm pipe range",
       "AC drive synchronized",
@@ -68,7 +68,7 @@ const features = [
   {
     title: "Planetary Cutting Saw",
     desc: "PLC-controlled planetary cutting system designed for pipe diameters up to 315mm. Equipped with hard alloy saw blades and a dust extraction system for clean and efficient cutting.",
-    image: "/product.jpg",
+    image: "/products/tse3.jpg",
     highlights: [
       "PLC controlled cutting",
       "Up to 315mm pipe diameter",
@@ -79,7 +79,7 @@ const features = [
   {
     title: "Automatic Cutting Unit",
     desc: "Features a carborundum cutter for reduced material wastage and smooth cutting. Pneumatic cylinders and adjustable clamping force ensure accurate cutting across different wall thicknesses.",
-    image: "/product.jpg",
+    image: "/products/sse4.jpg",
     highlights: [
       "Low-wastage cutting",
       "Adjustable clamping force",
@@ -90,7 +90,7 @@ const features = [
   {
     title: "Automatic Tipping Chute",
     desc: "Operated through pneumatic cylinders and limit switches, the tipping chute ensures efficient pipe stacking and smooth handling during continuous production.",
-    image: "/product.jpg",
+    image: "/products/sse5.jpg",
     highlights: [
       "Automatic pipe stacking",
       "Pneumatic operation",
@@ -405,7 +405,7 @@ export default function TwinScrewExtruder() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/home-hero.png')",
+            backgroundImage: "url('/heroSection/tsehero.png')",
           }}
         />
 
@@ -845,9 +845,9 @@ export default function TwinScrewExtruder() {
         </div>
       </section> */}
 
-      <section className="py-16 bg-[var(--background)]">
+      {/* <section className="py-16 bg-[var(--background)]">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
-          {/* Heading */}
+      
           <div className="text-center mb-16">
             <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
               Product Showcase
@@ -865,9 +865,9 @@ export default function TwinScrewExtruder() {
             </p>
           </div>
 
-          {/* Main Layout */}
+      
           <div>
-            {/* Video */}
+           
             <div className="relative h-[500px] rounded-[32px] overflow-hidden border border-[var(--border)] shadow-xl">
               <video
                 ref={videoRef}
@@ -895,7 +895,7 @@ export default function TwinScrewExtruder() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="py-16 bg-[var(--background)]">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">

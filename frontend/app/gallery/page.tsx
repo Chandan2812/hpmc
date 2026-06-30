@@ -193,67 +193,93 @@ export default function Gallery() {
               </h3>
               <p className="mx-auto mt-4 max-w-2xl text-[var(--text-secondary)] leading-8">
                 Our gallery is currently being updated with high-quality images
-                of exhibitions, products, facilities, and customer success stories.
+                of exhibitions, products, facilities, and customer success
+                stories.
               </p>
             </div>
           )}
 
           {!loading && !error && visibleAlbums.length > 0 && (
-            <div className="space-y-14">
+            <div className="space-y-10">
               {visibleAlbums.map((album) => (
-                <article key={album._id}>
-                  <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div
+                  key={album._id}
+                  className="rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6"
+                >
+                  {/* Album Header */}
+                  <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <h3 className="text-2xl font-bold text-[var(--text-primary)] md:text-3xl">
+                      <h3 className="text-2xl font-bold text-[var(--text-primary)]">
                         {album.title}
                       </h3>
-                      <div className="mt-2 flex flex-wrap gap-4 text-sm text-[var(--text-secondary)]">
+
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-[var(--text-secondary)]">
                         {album.location && (
-                          <span className="inline-flex items-center gap-1">
+                          <span className="flex items-center gap-1">
                             <MapPin size={15} />
                             {album.location}
                           </span>
                         )}
+
                         {album.year && (
-                          <span className="inline-flex items-center gap-1">
+                          <span className="flex items-center gap-1">
                             <CalendarDays size={15} />
                             {album.year}
                           </span>
                         )}
-                        <span>{album.images.length} photos</span>
+
+                        <span>{album.images.length} Photos</span>
                       </div>
+
+                      {album.description && (
+                        <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
+                          {album.description}
+                        </p>
+                      )}
                     </div>
-                    {album.description && (
-                      <p className="max-w-xl text-sm leading-7 text-[var(--text-secondary)]">
-                        {album.description}
-                      </p>
-                    )}
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {album.images.map((image, index) => (
-                      <figure
-                        key={image._id}
-                        className={`group overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] ${
-                          index === 0 ? "sm:col-span-2" : ""
-                        }`}
-                      >
-                        <div className="aspect-[4/3] overflow-hidden">
-                          <img
-                            src={image.url}
-                            alt={image.caption || album.title}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          />
+                  {/* Images */}
+                  {album.images.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                      {album.images.map((image) => (
+                        <div
+                          key={image._id}
+                          className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--background-secondary)]"
+                        >
+                          <div className="aspect-square overflow-hidden">
+                            <img
+                              src={image.url}
+                              alt={image.caption || album.title}
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                            />
+                          </div>
+
+                          {image.caption && (
+                            <div className="border-t border-[var(--border)] p-3">
+                              <p className="line-clamp-2 text-sm text-[var(--text-secondary)]">
+                                {image.caption}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                        {(image.caption || album.title) && (
-                          <figcaption className="px-4 py-3 text-sm font-medium text-[var(--text-primary)]">
-                            {image.caption || album.title}
-                          </figcaption>
-                        )}
-                      </figure>
-                    ))}
-                  </div>
-                </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex h-48 flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-[var(--background-secondary)]">
+                      <Images
+                        size={36}
+                        className="mb-3 text-[var(--text-secondary)]"
+                      />
+                      <p className="font-medium text-[var(--text-primary)]">
+                        No Images Available
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                        Images will be added soon.
+                      </p>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}

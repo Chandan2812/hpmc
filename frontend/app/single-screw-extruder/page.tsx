@@ -22,10 +22,10 @@ import "swiper/css";
 import DemoPopup from "../components/PopupDemo";
 
 const galleryImages = [
-  "/product.jpg",
-  "/imag1.png",
-  "/product.jpg",
-  "/product.jpg",
+  "/products/single-screw-extruder.jpg",
+  "/products/sse2.jpg",
+  "/products/sse3.jpg",
+  "/products/sse4.jpg",
 ];
 
 const faqData = [
@@ -97,7 +97,7 @@ const features = [
   {
     title: "Precision Die Head",
     desc: "Engineered for accurate pipe formation, the die head is available for pipe sizes ranging from 16mm to 160mm and is equipped with a stainless-steel spider for superior flow distribution and dimensional accuracy.",
-    image: "/product.jpg",
+    image: "/products/sse1.jpg",
 
     highlights: [
       "16mm – 160mm pipe range",
@@ -109,7 +109,7 @@ const features = [
   {
     title: "Advanced Cooling Unit",
     desc: "The vacuum and water cooling system ensures precise pipe dimensions, excellent surface finish, and efficient cooling performance for consistent production quality.",
-    image: "/product.jpg",
+    image: "/products/sse2.jpg",
 
     highlights: [
       "Vacuum tank for 16mm – 50mm pipes",
@@ -121,7 +121,7 @@ const features = [
   {
     title: "Heavy-Duty Caterpuller",
     desc: "Equipped with independent geared motors for both rollers, the caterpuller delivers smooth pipe movement while preventing wrinkles and maintaining stable production speed.",
-    image: "/product.jpg",
+    image: "/products/sse3.jpg",
 
     highlights: [
       "Dual geared motor drive",
@@ -133,7 +133,7 @@ const features = [
   {
     title: "Automatic Cutting System",
     desc: "The automatic cutting unit features pneumatic clamping and length sensing technology to provide accurate, clean, and repeatable pipe cutting operations.",
-    image: "/product.jpg",
+    image: "/products/sse4.jpg",
 
     highlights: [
       "Pneumatic holding system",
@@ -145,7 +145,7 @@ const features = [
   {
     title: "High-Precision Cutting Saw",
     desc: "Designed for reliable and clean pipe cutting, the cutting saw is equipped with a pneumatic cylinder and limit switch mechanism for precise length measurement and operation.",
-    image: "/product.jpg",
+    image: "/products/sse5.jpg",
 
     highlights: [
       "Clean & accurate cuts",
@@ -377,7 +377,7 @@ export default function SingleScrewExtruder() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/home-hero.png')",
+            backgroundImage: "url('/heroSection/sseHero.png')",
           }}
         />
 
@@ -733,9 +733,8 @@ export default function SingleScrewExtruder() {
         </div>
       </section>
 
-      <section className="py-16 bg-[var(--background)] overflow-hidden">
+      {/* <section className="py-16 bg-[var(--background)] overflow-hidden">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
-          {/* Heading */}
           <div className="text-center mb-14">
             <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
               Applications
@@ -753,7 +752,6 @@ export default function SingleScrewExtruder() {
             </p>
           </div>
 
-          {/* Slider */}
           <Swiper
             modules={[Autoplay]}
             spaceBetween={24}
@@ -814,11 +812,10 @@ export default function SingleScrewExtruder() {
             ))}
           </Swiper>
         </div>
-      </section>
+      </section> */}
 
-      <section className="py-16 bg-[var(--background)]">
+      {/* <section className="py-16 bg-[var(--background)]">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
-          {/* Heading */}
           <div className="text-center mb-16">
             <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
               Product Showcase
@@ -836,9 +833,8 @@ export default function SingleScrewExtruder() {
             </p>
           </div>
 
-          {/* Main Layout */}
           <div>
-            {/* Video */}
+           
             <div className="relative h-[500px] rounded-[32px] overflow-hidden border border-[var(--border)] shadow-xl">
               <video
                 ref={videoRef}
@@ -866,7 +862,7 @@ export default function SingleScrewExtruder() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="py-16 bg-[var(--background)]">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">

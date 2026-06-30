@@ -16,37 +16,76 @@ export default function ProductCarousel() {
     {
       id: 1,
       title: "Single Screw Extruder",
-      image: "/product.jpg",
+      image: "/products/single-screw-extruder.jpg",
       link: "/single-screw-extruder",
       description:
-        "High-performance industrial extrusion solutions designed for reliability, efficiency and long-term productivity.",
+        "Efficient single screw extrusion system designed for manufacturing high-quality PVC pipes with excellent output, energy efficiency, and consistent production performance.",
       catalogue: "/catalogue.pdf",
     },
     {
       id: 2,
       title: "Twin Screw Extruder",
-      image: "/product.jpg",
+      image: "/products/conical-twin-screw-extruder.jpg",
       link: "/twin-screw-extruder",
       description:
-        "High-performance industrial extrusion solutions designed for reliability, efficiency and long-term productivity.",
+        "Advanced conical twin screw extrusion technology delivering superior plasticizing, stable processing, and reliable production for PVC pipe applications.",
       catalogue: "/catalogue.pdf",
     },
     {
       id: 3,
       title: "PVC Conduit Pipe Plant (Two Pipes)",
-      image: "/product.jpg",
+      image: "/products/PVC-CONDUIT-PIPE-PLANT-two-PIPES-1.jpg",
       link: "/pvc-conduit-pipe-plant-two-pipes",
       description:
-        "High-performance industrial extrusion solutions designed for reliability, efficiency and long-term productivity.",
+        "High-speed dual pipe extrusion plant engineered for efficient production of premium PVC conduit pipes with excellent dimensional accuracy and productivity.",
       catalogue: "/catalogue.pdf",
     },
     {
       id: 4,
       title: "PVC Conduit Pipe Plant (Four Pipes)",
-      image: "/product.jpg",
+      image: "/products/PVC-CONDUIT-PIPE-PLANT-FOUR-PIPES-1.jpg",
       link: "/pvc-conduit-pipe-plant-four-pipes",
       description:
-        "High-performance industrial extrusion solutions designed for reliability, efficiency and long-term productivity.",
+        "Four-pipe extrusion solution designed to maximize production capacity while maintaining exceptional quality, precision, and operational efficiency.",
+      catalogue: "/catalogue.pdf",
+    },
+    {
+      id: 5,
+      title: "Vented Recycling Plant",
+      image: "/products/VENTED-RECYCLING-PLANT-1-1.jpg",
+      link: "/vented-recycling-plant",
+      description:
+        "High-performance vented recycling plant for processing plastic waste into quality reusable granules with effective degassing and improved material properties.",
+      catalogue: "/catalogue.pdf",
+    },
+    {
+      id: 6,
+      title: "Recycling Plant With Compactor",
+      image: "/products/recycling-plant-with-compacter.jpg",
+      link: "/recycling-plant-with-compactor",
+      description:
+        "Integrated recycling plant with compactor for efficient handling of plastic scrap, ensuring enhanced feeding, uniform melting, and superior recycling performance.",
+      catalogue: "/catalogue.pdf",
+    },
+    {
+      id: 7,
+      title: "Corotating Twin Screw Extruder for Compounding & Recycling",
+      image:
+        "/products/corotating-twin-screw-extruder-for-compounding-recycling.jpg",
+      link: "/corotating-twin-screw-extruder-for-compounding-&-recycling",
+      description:
+        "Advanced co-rotating twin screw extrusion system designed for efficient compounding and plastic recycling with excellent mixing performance, consistent output, and superior material quality.",
+      catalogue: "/catalogue.pdf",
+    },
+    {
+      id: 8,
+      title:
+        "Corotating Triple Screw Extruder for Compounding & Recycling (Engineering Plastic)",
+      image:
+        "/products/corotating-triple-screw-extruder-for-compounding-recycling.jpg",
+      link: "/corotating-triple-screw-extruder-for-compounding-&-recycling",
+      description:
+        "High-performance triple screw extrusion technology developed for engineering plastics, delivering exceptional dispersion, enhanced compounding efficiency, and superior processing performance.",
       catalogue: "/catalogue.pdf",
     },
   ];
