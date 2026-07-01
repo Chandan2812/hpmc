@@ -24,113 +24,7 @@ import { Autoplay } from "swiper/modules";
 import "swiper/css";
 import DemoPopup from "../components/PopupDemo";
 
-const galleryImages = [
-  "/products/conical-twin-screw-extruder.jpg",
-  "/products/tse/tse1.jpg",
-  "/products/tse/tse2.jpg",
-  "/products/tse/tse3.jpg",
-];
-
-const features = [
-  {
-    title: "Forged Alloy Steel Die Head",
-    desc: "Manufactured from high carbon content forged alloy steel, the die head delivers superior durability, longer service life, and reliable performance for PVC pipe production.",
-    image: "/products/tse/sse1.jpg",
-    highlights: [
-      "Forged alloy steel construction",
-      "High carbon content",
-      "Extended service life",
-    ],
-  },
-
-  {
-    title: "Spray Cooling Bath",
-    desc: "Designed for intensive pipe cooling using multiple self-cleaning spray nozzles. The tank features axial adjustment on slide rails with locking arrangements and an acrylic transparent cover for easy inspection.",
-    image: "/products/tse/tse1.jpg",
-    highlights: [
-      "Self-cleaning spray nozzles",
-      "Axial tank adjustment",
-      "Transparent inspection cover",
-    ],
-  },
-
-  {
-    title: "Pneumatic Caterpuller Haul-Off",
-    desc: "Twin and multi-track haul-off system with pneumatic pressure adjustment and AC frequency variable drive synchronization. Suitable for pipe sizes ranging from 20mm to 315mm.",
-    image: "/products/tse/tse2.jpg",
-    highlights: [
-      "20mm–315mm pipe range",
-      "AC drive synchronized",
-      "Pneumatic track adjustment",
-    ],
-  },
-
-  {
-    title: "Planetary Cutting Saw",
-    desc: "PLC-controlled planetary cutting system designed for pipe diameters up to 315mm. Equipped with hard alloy saw blades and a dust extraction system for clean and efficient cutting.",
-    image: "/products/tse/tse3.jpg",
-    highlights: [
-      "PLC controlled cutting",
-      "Up to 315mm pipe diameter",
-      "Dust extraction system",
-    ],
-  },
-
-  {
-    title: "Automatic Cutting Unit",
-    desc: "Features a carborundum cutter for reduced material wastage and smooth cutting. Pneumatic cylinders and adjustable clamping force ensure accurate cutting across different wall thicknesses.",
-    image: "/products/tse/sse4.jpg",
-    highlights: [
-      "Low-wastage cutting",
-      "Adjustable clamping force",
-      "Length sensing limit switch",
-    ],
-  },
-
-  {
-    title: "Automatic Tipping Chute",
-    desc: "Operated through pneumatic cylinders and limit switches, the tipping chute ensures efficient pipe stacking and smooth handling during continuous production.",
-    image: "/products/tse/sse5.jpg",
-    highlights: [
-      "Automatic pipe stacking",
-      "Pneumatic operation",
-      "Limit switch controlled",
-    ],
-  },
-];
-
-const applications = [
-  {
-    image: "/images (2).png",
-    title: "Oil Packaging Film",
-    description: "Used for edible oil and liquid packaging solutions.",
-  },
-  {
-    image: "/images (3).png",
-    title: "Vacuum Bags",
-    description: "Ideal for food preservation and industrial packaging.",
-  },
-  {
-    image: "/images (4).png",
-    title: "Food Packaging Film",
-    description: "Safe and durable packaging for food products.",
-  },
-  {
-    image: "/images (5).png",
-    title: "Stretch Film",
-    description: "Widely used for pallet wrapping and logistics.",
-  },
-  {
-    image: "/images (2).png",
-    title: "Milk Packaging Film",
-    description: "Flexible film solutions for dairy packaging.",
-  },
-  {
-    image: "/images (3).png",
-    title: "Industrial Packaging",
-    description: "Heavy-duty packaging for industrial applications.",
-  },
-];
+const galleryImages = ["/products/conical-twin-screw-extruder.jpg"];
 
 const specifications = [
   {
@@ -264,35 +158,35 @@ const specifications = [
 
 const faqData = [
   {
-    question: "What is a Twin Screw Extruder?",
+    question: "What is a PVC Conduit Pipe Plant?",
     answer:
-      "A Twin Screw Extruder is an advanced plastic processing machine equipped with two intermeshing screws that provide superior mixing, compounding, plasticization, and material dispersion for a wide range of polymers and additives.",
+      "A PVC Conduit Pipe Plant is an advanced plastic processing machine equipped with two intermeshing screws that provide superior mixing, compounding, plasticization, and material dispersion for a wide range of polymers and additives.",
   },
   {
     question:
-      "What materials can be processed using the HPMC Twin Screw Extruder?",
+      "What materials can be processed using the HPMC PVC Conduit Pipe Plant?",
     answer:
-      "The HPMC Twin Screw Extruder can process PVC compounds, masterbatches, engineering plastics, filled polymers, recycled materials, WPC compounds, and various thermoplastic formulations.",
+      "The HPMC PVC Conduit Pipe Plant can process PVC compounds, masterbatches, engineering plastics, filled polymers, recycled materials, WPC compounds, and various thermoplastic formulations.",
   },
   {
-    question: "What are the main applications of a Twin Screw Extruder?",
+    question: "What are the main applications of a PVC Conduit Pipe Plant?",
     answer:
-      "Twin Screw Extruders are widely used for PVC compounding, masterbatch production, polymer blending, filler incorporation, plastic recycling, cable compounds, and engineering plastic processing.",
+      "PVC Conduit Pipe Plants are widely used for PVC compounding, masterbatch production, polymer blending, filler incorporation, plastic recycling, cable compounds, and engineering plastic processing.",
   },
   {
-    question: "What is the production capacity of the Twin Screw Extruder?",
+    question: "What is the production capacity of the PVC Conduit Pipe Plant?",
     answer:
-      "Production capacity varies depending on the model and material being processed. HPMC Twin Screw Extruders are designed to deliver high throughput with consistent product quality and efficient energy utilization.",
+      "Production capacity varies depending on the model and material being processed. HPMC PVC Conduit Pipe Plants are designed to deliver high throughput with consistent product quality and efficient energy utilization.",
   },
   {
-    question: "Why is a Twin Screw Extruder preferred for compounding?",
+    question: "Why is a PVC Conduit Pipe Plant preferred for compounding?",
     answer:
       "The co-rotating twin screw design provides superior distributive and dispersive mixing, ensuring uniform additive distribution, excellent melt quality, and consistent compound properties.",
   },
   {
     question: "Can the machine handle high filler loading applications?",
     answer:
-      "Yes. HPMC Twin Screw Extruders are engineered to process formulations with high filler loading, including calcium carbonate, talc, glass fiber, and other reinforcing materials.",
+      "Yes. HPMC PVC Conduit Pipe Plants are engineered to process formulations with high filler loading, including calcium carbonate, talc, glass fiber, and other reinforcing materials.",
   },
   {
     question: "What are the advantages of co-rotating twin screw technology?",
@@ -305,12 +199,12 @@ const faqData = [
       "Yes. The modular screw design allows customization of screw elements and configurations to meet specific processing requirements and material formulations.",
   },
   {
-    question: "Can the Twin Screw Extruder be used for plastic recycling?",
+    question: "Can the PVC Conduit Pipe Plant be used for plastic recycling?",
     answer:
       "Yes. The machine is highly suitable for recycling applications, enabling efficient reprocessing, homogenization, filtration, and pelletizing of recycled plastic materials.",
   },
   {
-    question: "How energy efficient is the HPMC Twin Screw Extruder?",
+    question: "How energy efficient is the HPMC PVC Conduit Pipe Plant?",
     answer:
       "The machine is designed with optimized drive systems, advanced temperature control, and efficient screw geometry to maximize productivity while minimizing energy consumption.",
   },
@@ -320,28 +214,28 @@ const faqData = [
       "Yes. HPMC offers complete installation, commissioning, operator training, technical assistance, spare parts support, and after-sales service to ensure smooth operation.",
   },
   {
-    question: "Which industries use Twin Screw Extruders?",
+    question: "Which industries use PVC Conduit Pipe Plants?",
     answer:
-      "Twin Screw Extruders are widely used in plastics processing, automotive, packaging, cable manufacturing, construction materials, polymer compounding, masterbatch production, and recycling industries.",
+      "PVC Conduit Pipe Plants are widely used in plastics processing, automotive, packaging, cable manufacturing, construction materials, polymer compounding, masterbatch production, and recycling industries.",
   },
   {
-    question: "What maintenance is required for a Twin Screw Extruder?",
+    question: "What maintenance is required for a PVC Conduit Pipe Plant?",
     answer:
       "Routine maintenance includes inspection of screw elements, barrel segments, gearbox lubrication, heating and cooling systems, electrical components, and regular cleaning to maintain optimal performance.",
   },
   {
     question: "Can the machine process glass fiber reinforced compounds?",
     answer:
-      "Yes. HPMC Twin Screw Extruders are designed to process glass fiber reinforced compounds while ensuring proper fiber dispersion and minimal fiber breakage.",
+      "Yes. HPMC PVC Conduit Pipe Plants are designed to process glass fiber reinforced compounds while ensuring proper fiber dispersion and minimal fiber breakage.",
   },
   {
-    question: "Why choose HPMC Twin Screw Extruders?",
+    question: "Why choose HPMC PVC Conduit Pipe Plants?",
     answer:
-      "HPMC Twin Screw Extruders deliver superior mixing performance, high productivity, excellent process flexibility, energy efficiency, reliable operation, and long service life for demanding compounding applications.",
+      "HPMC PVC Conduit Pipe Plants deliver superior mixing performance, high productivity, excellent process flexibility, energy efficiency, reliable operation, and long service life for demanding compounding applications.",
   },
 ];
 
-export default function TwinScrewExtruder() {
+export default function PvcConduitPipePlant() {
   const [openPopup, setOpenPopup] = useState(false);
   const [openPopup2, setOpenPopup2] = useState(false);
   const [catalogueToDownload, setCatalogueToDownload] = useState("");
@@ -352,26 +246,7 @@ export default function TwinScrewExtruder() {
   const [active, setActive] = useState<number | null>(0);
   const [showAllFaqs, setShowAllFaqs] = useState(false);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [playing, setPlaying] = useState(false);
-
   const displayedFaqs = showAllFaqs ? faqData : faqData.slice(0, 5);
-
-  const toggleVideo = async () => {
-    if (!videoRef.current) return;
-
-    if (playing) {
-      videoRef.current.pause();
-      setPlaying(false);
-    } else {
-      try {
-        await videoRef.current.play();
-        setPlaying(true);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
 
   const handleDownload = (catalogue: string) => {
     const access = localStorage.getItem("catalogue_access");
@@ -416,18 +291,18 @@ export default function TwinScrewExtruder() {
         <div className="relative z-10 h-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 flex items-center">
           <div className="max-w-[520px] pt-24 lg:pt-0">
             <h1 className="text-[32px] sm:text-[42px] md:text-[54px] lg:text-[64px] leading-[1.05] font-bold text-[#0B1220]">
-              Conical Twin Screw
-              <span className="text-[#65BC4F]"> Extruder</span>
+              PVC Conduit
+              <span className="text-[#65BC4F]"> Pipe Plant</span>
             </h1>
 
             <p className="mt-6 text-gray-600 text-sm md:text-base leading-7 max-w-[500px]">
-              HPMC Conical Twin Screw Extruders are engineered for
-              high-efficiency PVC pipe production with superior plasticizing
-              performance and consistent output. Designed for both small and
-              large diameter pipes, the series delivers excellent productivity
-              with low power consumption and output capacities up to 150 kg/hr.
-              Available in HPMC 45/90, HPMC 51/105, HPMC 65/132, HPMC 80/156,
-              and HPMC 92/188 models.
+              HPMC PVC Conduit Pipe Plant are engineered for high-efficiency PVC
+              pipe production with superior plasticizing performance and
+              consistent output. Designed for both small and large diameter
+              pipes, the series delivers excellent productivity with low power
+              consumption and output capacities up to 150 kg/hr. Available in
+              HPMC 45/90, HPMC 51/105, HPMC 65/132, HPMC 80/156, and HPMC 92/188
+              models.
             </p>
 
             {/* Buttons */}
@@ -458,7 +333,8 @@ export default function TwinScrewExtruder() {
           <h2 className="mt-4 text-4xl lg:text-5xl font-bold text-[var(--text-primary)] leading-tight">
             PVC Pipe Plant -
             <span className="text-[var(--primary)]">
-              Conical Twin Screw Extruder
+              {" "}
+              PVC Conduit Pipe Plant
             </span>
           </h2>
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -552,12 +428,12 @@ export default function TwinScrewExtruder() {
             {/* CONTENT */}
             <div>
               <p className="mt-8 text-[var(--text-secondary)] leading-8">
-                HPMC Conical Twin Screw Extruders for PVC Pipe Plants are
-                available in HPMC 45/90, HPMC 51/105, HPMC 65/132, HPMC 80/156,
-                and HPMC 92/188 models. The extruders are equipped with a
-                compact and reliable gearbox along with bi-metallic screw and
-                barrel technology for longer service life and dependable
-                performance in PVC pipe manufacturing applications.
+                HPMC PVC Conduit Pipe Plant for PVC Pipe Plants are available in
+                HPMC 45/90, HPMC 51/105, HPMC 65/132, HPMC 80/156, and HPMC
+                92/188 models. The extruders are equipped with a compact and
+                reliable gearbox along with bi-metallic screw and barrel
+                technology for longer service life and dependable performance in
+                PVC pipe manufacturing applications.
               </p>
 
               <p className="mt-5 text-[var(--text-secondary)] leading-8">
@@ -667,237 +543,6 @@ export default function TwinScrewExtruder() {
           </div>
         </div>
       </section>
-
-      <section className="py-10 bg-[var(--background)]">
-        <div className="max-w-7xl mx-auto px-5 lg:px-8">
-          <div className="text-center mb-10">
-            <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
-              Key Features
-            </span>
-
-            <h2 className="mt-4 text-5xl lg:text-5xl font-bold">
-              Why Choose Our
-              <span className="text-[var(--primary)]">
-                {" "}
-                Twin Screw Extruder
-              </span>
-            </h2>
-          </div>
-
-          <div className="relative">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="sticky flex min-h-[calc(100vh-120px)] items-center py-6"
-                style={{
-                  top: `${72 + index * 4}px`,
-                  zIndex: index + 1,
-                }}
-              >
-                <div className="bg-[var(--card)] rounded-[28px] overflow-hidden border border-[var(--border)] shadow-[0_15px_50px_rgba(0,0,0,0.08)] mb-6">
-                  <div className="grid lg:grid-cols-[1.1fr_0.9fr] min-h-[380px]">
-                    {/* LEFT */}
-                    <div className="p-8 lg:p-12 flex flex-col justify-center">
-                      {/* Top */}
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center font-bold">
-                          {String(index + 1).padStart(2, "0")}
-                        </div>
-
-                        <div className="h-[1px] flex-1 bg-[var(--border)]" />
-                      </div>
-
-                      <h3 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)]">
-                        {feature.title}
-                      </h3>
-
-                      <p className="mt-5 text-[var(--text-secondary)] leading-7">
-                        {feature.desc}
-                      </p>
-
-                      {/* HIGHLIGHTS */}
-                      <div className="mt-8 grid gap-3">
-                        {feature.highlights.map((item, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center gap-3 text-sm font-medium"
-                          >
-                            <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
-                            {item}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* CTA */}
-                      <button
-                        className="
-      mt-8
-      w-fit
-      px-6
-      py-3
-      rounded-xl
-      bg-[var(--primary)]
-      text-white
-      font-medium
-      transition
-      hover:scale-105
-    "
-                      >
-                        Request Quote
-                      </button>
-                    </div>
-
-                    {/* RIGHT */}
-                    <div className="relative bg-gradient-to-br from-white to-[#f5f7f8]">
-                      <Image
-                        src={feature.image}
-                        alt={feature.title}
-                        fill
-                        className="object-contain p-8"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* <section className="py-16 bg-[var(--background)] overflow-hidden">
-        <div className="max-w-7xl mx-auto px-5 lg:px-8">
-        
-          <div className="text-center mb-14">
-            <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
-              Applications
-            </span>
-
-            <h2 className="mt-4 text-4xl lg:text-5xl font-bold text-[var(--text-primary)]">
-              Products Manufactured Using Our
-              <span className="text-[var(--primary)]"> PVC Pipe Plant</span>
-            </h2>
-
-            <p className="mt-5 max-w-3xl mx-auto text-[var(--text-secondary)] leading-8">
-              HPMC Single Screw Extruders are widely used for manufacturing a
-              variety of PVC pipes and profiles for infrastructure, agriculture,
-              construction, and industrial applications.
-            </p>
-          </div>
-
-    
-          <Swiper
-            modules={[Autoplay]}
-            spaceBetween={24}
-            slidesPerView={1.2}
-            loop={true}
-            speed={4000}
-            autoplay={{
-              delay: 0,
-              disableOnInteraction: false,
-            }}
-            breakpoints={{
-              640: {
-                slidesPerView: 2,
-              },
-              1024: {
-                slidesPerView: 4,
-              },
-            }}
-            className="applications-swiper"
-          >
-            {applications.map((item, index) => (
-              <SwiperSlide key={index}>
-                <div
-                  className="
-              group
-              relative
-              h-[320px]
-              rounded-[20px]
-              overflow-hidden
-              cursor-pointer
-            "
-                >
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    className="
-                object-cover
-                transition-all
-                duration-700
-                group-hover:scale-110
-              "
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-
-                  <div className="absolute bottom-0 p-6">
-                    <h3 className="text-white text-2xl font-bold">
-                      {item.title}
-                    </h3>
-
-                    <p className="text-white/80 mt-3 leading-6">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
-      </section> */}
-
-      {/* <section className="py-16 bg-[var(--background)]">
-        <div className="max-w-7xl mx-auto px-5 lg:px-8">
-      
-          <div className="text-center mb-16">
-            <span className="text-[var(--primary)] uppercase tracking-[4px] text-sm font-semibold">
-              Product Showcase
-            </span>
-
-            <h2 className="mt-4 text-4xl lg:text-5xl font-bold text-[var(--text-primary)]">
-              See Our Machine
-              <span className="text-[var(--primary)]"> In Action</span>
-            </h2>
-
-            <p className="mt-5 max-w-3xl mx-auto text-[var(--text-secondary)]">
-              Explore detailed machine visuals and watch real production
-              demonstrations to understand the performance and quality of our
-              extrusion systems.
-            </p>
-          </div>
-
-      
-          <div>
-           
-            <div className="relative h-[500px] rounded-[32px] overflow-hidden border border-[var(--border)] shadow-xl">
-              <video
-                ref={videoRef}
-                controls
-                poster="/capture.png"
-                className="w-full h-full object-cover"
-                onPlay={() => setPlaying(true)}
-                onPause={() => setPlaying(false)}
-              >
-                <source src="/abc.mp4" type="video/mp4" />
-              </video>
-
-              {!playing && (
-                <>
-                  <div className="absolute inset-0 bg-black/25 pointer-events-none" />
-
-                  <button
-                    onClick={toggleVideo}
-                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white shadow-2xl flex items-center justify-center hover:scale-110 transition-all"
-                  >
-                    <Play size={34} className="ml-1 text-[var(--primary)]" />
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </section> */}
 
       <section className="py-16 bg-[var(--background)]">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
@@ -1017,7 +662,7 @@ export default function TwinScrewExtruder() {
               Everything About Our
               <span className="text-[var(--primary)]">
                 {" "}
-                Twin Screw Extruder
+                PVC Conduit Pipe Plant
               </span>
             </h2>
 

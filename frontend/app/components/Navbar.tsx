@@ -26,7 +26,7 @@ const productsData = [
       },
       {
         name: "PVC Conduit Pipe Plant ",
-        link: "#",
+        link: "/pvc-conduit-pipe-plant",
       },
       {
         name: "PVC Conduit Pipe Plant (Dual Pipes)",
@@ -190,7 +190,7 @@ const productsData = [
       },
       {
         name: "Conical Twin Screw Plant for Dual CPVC Pipe",
-        link: "#",
+        link: "/conical-twin-screw-plant-for-cpvc-dual-pipe",
       },
     ],
   },
@@ -231,7 +231,7 @@ const productsDataDesktop = [
     name: "PVC Conduit Pipe Plant",
     category: "PVC Pipe Plant",
     image: "/product.jpg",
-    link: "#",
+    link: "/pvc-conduit-pipe-plant",
   },
   {
     name: "PVC Conduit Pipe Plant (Dual Pipes)",
@@ -394,7 +394,7 @@ const productsDataDesktop = [
     name: "Conical Twin Screw Plant for Dual CPVC Pipe",
     category: "CPVC Pipe Extruder",
     image: "/product.jpg",
-    link: "#",
+    link: "/conical-twin-screw-plant-for-cpvc-dual-pipe",
   },
 
   {
