@@ -332,7 +332,7 @@ export default function Footer() {
                   Our Journey
                 </Link>
                 <Link
-                  href="/leadership-teams"
+                  href="/leadership-team"
                   className="text-gray-400 hover:text-lime-400 transition text-sm"
                 >
                   Leadership Teams
