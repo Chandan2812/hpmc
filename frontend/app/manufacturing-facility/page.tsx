@@ -33,12 +33,15 @@ export default function ManufacturingFacility() {
   ];
 
   const facilityImages = [
-    "/imag1.png",
-    "/imag1.png",
-    "/imag1.png",
-    "/imag1.png",
-    "/imag1.png",
-    "/imag1.png",
+    "/images/img4.jpg",
+    "/images/img5.jpg",
+    "/images/img7.jpg",
+    "/images/img10.jpg",
+    "/images/img11.jpg",
+    "/images/img12.jpg",
+    "/images/img13.jpg",
+    "/images/img14.jpg",
+    "/images/img15.jpg",
   ];
 
   const [openPopup, setOpenPopup] = useState(false);
@@ -51,7 +54,7 @@ export default function ManufacturingFacility() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/about-hero.png')",
+            backgroundImage: "url('/herosection/about.png')",
           }}
         />
 

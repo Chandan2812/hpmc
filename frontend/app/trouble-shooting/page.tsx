@@ -23,7 +23,7 @@ export default function TroubleShooting() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/home-hero.png')",
+            backgroundImage: "url('/herosection/support.png')",
           }}
         />
 

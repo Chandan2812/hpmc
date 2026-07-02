@@ -375,12 +375,9 @@ export default function Faq() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/home-hero.png')",
+            backgroundImage: "url('/herosection/faq.png')",
           }}
         />
-
-        <div className="absolute inset-0 bg-white/20" />
-        <div className="absolute inset-y-0 left-0 w-full bg-[linear-gradient(90deg,rgba(255,255,255,0.96),rgba(255,255,255,0.72),rgba(255,255,255,0.1))]" />
 
         <div className="relative z-10 h-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 flex items-center">
           <div className="max-w-[760px] pt-24 lg:pt-0">

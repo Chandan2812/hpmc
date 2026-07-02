@@ -24,7 +24,7 @@ export default function TechnicalAssistance() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/home-hero.png')",
+            backgroundImage: "url('/herosection/support.png')",
           }}
         />
 
@@ -76,7 +76,7 @@ export default function TechnicalAssistance() {
             <div className="relative">
               <div className="relative h-[500px] rounded-[32px] overflow-hidden border border-[var(--border)]">
                 <Image
-                  src="/imag1.png"
+                  src="/team.png"
                   alt="Technical Assistance"
                   fill
                   className="object-cover"

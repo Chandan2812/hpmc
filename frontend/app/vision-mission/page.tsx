@@ -29,7 +29,7 @@ export default function VisionMission() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/about-hero.png')",
+            backgroundImage: "url('/herosection/visionmission.png')",
           }}
         />
 

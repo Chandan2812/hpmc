@@ -59,7 +59,7 @@ export default function About() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/about-hero.png')",
+            backgroundImage: "url('/herosection/about.png')",
           }}
         />
 
@@ -145,18 +145,33 @@ export default function About() {
             {/* CENTER IMAGE */}
             <div className="lg:col-span-5">
               <div className="relative h-[520px] rounded-[var(--radius)] overflow-hidden shadow-[var(--shadow-primary)]">
-                <Image src="/imag1.png" alt="" fill className="object-cover" />
+                <Image
+                  src="/images/img1.jpg"
+                  alt=""
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
 
             {/* RIGHT IMAGES */}
             <div className="lg:col-span-3 flex flex-col gap-6">
               <div className="relative h-[248px] rounded-[var(--radius)] overflow-hidden shadow-[var(--shadow-primary)]">
-                <Image src="/imag1.png" alt="" fill className="object-cover" />
+                <Image
+                  src="/images/img2.jpg"
+                  alt=""
+                  fill
+                  className="object-cover"
+                />
               </div>
 
               <div className="relative h-[248px] rounded-[var(--radius)] overflow-hidden shadow-[var(--shadow-primary)]">
-                <Image src="/imag1.png" alt="" fill className="object-cover" />
+                <Image
+                  src="/images/img3.jpg"
+                  alt=""
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
           </div>

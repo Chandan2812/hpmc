@@ -55,7 +55,7 @@ export default function Milestones() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/about-hero.png')",
+            backgroundImage: "url('/herosection/about.png')",
           }}
         />
 

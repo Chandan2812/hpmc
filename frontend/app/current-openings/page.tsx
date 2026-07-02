@@ -48,7 +48,7 @@ export default function CurrentOpening() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/home-hero.png')",
+            backgroundImage: "url('/herosection/career.png')",
           }}
         />
 
