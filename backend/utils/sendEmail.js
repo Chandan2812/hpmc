@@ -10,7 +10,7 @@ const sendEmail = async ({ to, subject, html, attachments }) => {
     const sendSmtpEmail = {
       sender: {
         name: "HPMC",
-        email: "devashish@bigwigmedia.in",
+        email: "social_media@hindustanplastics.com",
       },
       to: [{ email: to }],
       subject,
