@@ -17,36 +17,118 @@ exports.createSiteVisit = async (req, res) => {
     });
 
     await sendEmail({
-      to: "chandangomia2812@gmail.com",
-      subject: "New Site Visit Request - HPMC",
+      to: "social_media@hindustanplastics.com",
+      subject: "📅 New Site Visit Request - HPMC",
       html: `
-    <h2>New Site Visit Request</h2>
+  <div style="margin:0;padding:40px 20px;background:#f4f7f9;font-family:Arial,Helvetica,sans-serif;">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width:700px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
 
-    <p><strong>Name:</strong> ${siteVisit.name}</p>
+      <!-- Header -->
+      <tr>
+        <td align="center" style="padding:30px 20px;background:#ffffff;">
+          <img
+            src="https://res.cloudinary.com/fkvbncim/image/upload/v1782899294/hpmc/images/hp-logo.png"
+            alt="HPMC"
+            width="170"
+            style="display:block;"
+          />
+        </td>
+      </tr>
 
-    <p><strong>Email:</strong> ${siteVisit.email}</p>
+      <tr>
+        <td style="height:5px;background:#65BC4F;"></td>
+      </tr>
 
-    <p><strong>Phone:</strong> ${siteVisit.phone}</p>
+      <!-- Title -->
+      <tr>
+        <td style="padding:35px 35px 15px;">
+          <h2 style="margin:0;color:#111827;font-size:28px;">
+            📅 New Site Visit Request
+          </h2>
+          <p style="margin:10px 0 0;color:#6b7280;font-size:15px;">
+            A customer has requested a site visit through the HPMC website.
+          </p>
+        </td>
+      </tr>
 
-    <p><strong>Company:</strong> ${siteVisit.companyName}</p>
+      <!-- Visit Schedule -->
+      <tr>
+        <td style="padding:0 35px 25px;">
+          <div style="
+            background:#f3fdf1;
+            border-left:5px solid #65BC4F;
+            padding:18px 22px;
+            border-radius:8px;
+          ">
+            <div style="font-size:14px;color:#6b7280;margin-bottom:6px;">
+              Requested Visit Schedule
+            </div>
 
-    <p>
-  <strong>Visit Date & Time:</strong>
-  ${new Date(siteVisit.visitDateTime).toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  })} IST
-</p>
+            <div style="font-size:20px;font-weight:bold;color:#111827;">
+              ${new Date(siteVisit.visitDateTime).toLocaleString("en-IN", {
+                timeZone: "Asia/Kolkata",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })} IST
+            </div>
+          </div>
+        </td>
+      </tr>
 
-    <p>
-      <strong>Message:</strong><br/>
-      ${siteVisit.message || "-"}
-    </p>
+      <!-- Customer Details -->
+      <tr>
+        <td style="padding:0 35px 30px;">
+          <table width="100%" cellpadding="12" cellspacing="0" style="border-collapse:collapse;font-size:15px;">
+
+            <tr style="background:#f9fafb;">
+              <td style="font-weight:bold;width:180px;border:1px solid #e5e7eb;">Name</td>
+              <td style="border:1px solid #e5e7eb;">${siteVisit.name}</td>
+            </tr>
+
+            <tr>
+              <td style="font-weight:bold;border:1px solid #e5e7eb;">Company</td>
+              <td style="border:1px solid #e5e7eb;">${siteVisit.companyName || "-"}</td>
+            </tr>
+
+            <tr style="background:#f9fafb;">
+              <td style="font-weight:bold;border:1px solid #e5e7eb;">Email</td>
+              <td style="border:1px solid #e5e7eb;">${siteVisit.email}</td>
+            </tr>
+
+            <tr>
+              <td style="font-weight:bold;border:1px solid #e5e7eb;">Phone</td>
+              <td style="border:1px solid #e5e7eb;">${siteVisit.phone}</td>
+            </tr>
+
+            <tr style="background:#f9fafb;">
+              <td style="font-weight:bold;border:1px solid #e5e7eb;">Message</td>
+              <td style="border:1px solid #e5e7eb;">
+                ${siteVisit.message || "-"}
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background:#111827;padding:20px;text-align:center;color:#ffffff;font-size:13px;">
+          <strong>Hindustan Plastics & Machine Corporation (HPMC)</strong><br>
+          Website Site Visit Notification<br><br>
+          Received on: ${new Date().toLocaleString("en-IN", {
+            dateStyle: "medium",
+            timeStyle: "short",
+          })}
+        </td>
+      </tr>
+
+    </table>
+  </div>
   `,
     });
     res.status(201).json({

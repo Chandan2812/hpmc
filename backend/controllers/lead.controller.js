@@ -102,7 +102,9 @@ const getRowValue = (row, aliases) => {
 };
 
 const parseBoolean = (value) => {
-  const normalized = String(value || "").trim().toLowerCase();
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase();
   if (["true", "yes", "y", "1", "verified"].includes(normalized)) return true;
   if (["false", "no", "n", "0", "unverified"].includes(normalized))
     return false;
@@ -246,13 +248,87 @@ exports.sendOTP = async (req, res) => {
     // Send OTP Email
     await sendEmail({
       to: email,
-      subject: "Your OTP - HPMC",
+      subject: "Your HPMC Verification Code",
       html: `
-        <h2>Hello ${name},</h2>
-        <p>Your verification OTP is:</p>
-        <h1 style="letter-spacing: 5px;">${otp}</h1>
-        <p>This OTP is valid for 5 minutes.</p>
-      `,
+  <div style="margin:0;padding:40px 20px;background:#f4f7f9;font-family:Arial,Helvetica,sans-serif;">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+      
+      <!-- Header -->
+      <tr>
+        <td align="center" style="background:#ffffff;padding:35px 20px 20px;">
+          <img
+            src="https://res.cloudinary.com/fkvbncim/image/upload/v1782899294/hpmc/images/hp-logo.png"
+            alt="HPMC"
+            width="170"
+            style="display:block;margin:auto;"
+          />
+        </td>
+      </tr>
+
+      <!-- Green Line -->
+      <tr>
+        <td style="height:5px;background:#65BC4F;"></td>
+      </tr>
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:40px 35px;color:#333333;">
+
+          <h2 style="margin:0 0 15px;font-size:28px;color:#111827;">
+            Hello ${name},
+          </h2>
+
+          <p style="margin:0 0 20px;font-size:16px;line-height:1.7;color:#4b5563;">
+            Thank you for choosing <strong>Hindustan Plastics & Machine Corporation (HPMC)</strong>.
+            Please use the verification code below to complete your email verification.
+          </p>
+
+          <div style="margin:35px 0;text-align:center;">
+            <div style="
+              display:inline-block;
+              background:#f3fdf1;
+              border:2px dashed #65BC4F;
+              color:#111827;
+              padding:18px 40px;
+              font-size:34px;
+              font-weight:bold;
+              letter-spacing:8px;
+              border-radius:10px;
+            ">
+              ${otp}
+            </div>
+          </div>
+
+          <p style="font-size:15px;color:#4b5563;line-height:1.7;">
+            This verification code is valid for
+            <strong>5 minutes</strong>.
+          </p>
+
+          <p style="font-size:15px;color:#4b5563;line-height:1.7;">
+            If you did not request this verification code, you can safely ignore this email.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:35px 0;" />
+
+          <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.8;">
+            This is an automated email. Please do not reply.<br/>
+            <strong>Hindustan Plastics & Machine Corporation (HPMC)</strong><br/>
+            Engineering Excellence Since 1972
+          </p>
+
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td align="center" style="background:#111827;padding:18px;color:#ffffff;font-size:13px;">
+          © ${new Date().getFullYear()} HPMC. All Rights Reserved.
+        </td>
+      </tr>
+
+    </table>
+  </div>
+  `,
     });
 
     res.status(200).json({
@@ -315,43 +391,197 @@ exports.verifyOTP = async (req, res) => {
     /* ===== Confirmation Email ===== */
     await sendEmail({
       to: email,
-      subject: "We Received Your Request - HPMC",
+      subject: "Thank You for Contacting HPMC",
       html: `
-        <h2>Hello ${record.data.name},</h2>
-        <p>Thank you for contacting HPMC.</p>
-        <p>Our team will connect with you shortly.</p>
-      `,
+  <div style="margin:0;padding:40px 20px;background:#f4f7f9;font-family:Arial,Helvetica,sans-serif;">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+
+      <!-- Header -->
+      <tr>
+        <td align="center" style="background:#ffffff;padding:35px 20px 20px;">
+          <img
+            src="https://res.cloudinary.com/fkvbncim/image/upload/v1782899294/hpmc/images/hp-logo.png"
+            alt="HPMC"
+            width="170"
+            style="display:block;margin:auto;"
+          />
+        </td>
+      </tr>
+
+      <!-- Brand Line -->
+      <tr>
+        <td style="height:5px;background:#65BC4F;"></td>
+      </tr>
+
+      <!-- Content -->
+      <tr>
+        <td style="padding:40px 35px;color:#333333;">
+
+          <h2 style="margin:0 0 18px;font-size:28px;color:#111827;">
+            Hello ${record.data.name},
+          </h2>
+
+          <p style="margin:0 0 18px;font-size:16px;line-height:1.8;color:#4b5563;">
+            Thank you for contacting
+            <strong>Hindustan Plastics & Machine Corporation (HPMC)</strong>.
+            We have successfully received your enquiry.
+          </p>
+
+          <div style="
+            background:#f3fdf1;
+            border-left:4px solid #65BC4F;
+            padding:18px 20px;
+            border-radius:8px;
+            margin:30px 0;
+          ">
+            <p style="margin:0;font-size:16px;color:#111827;">
+              ✅ <strong>Your request has been submitted successfully.</strong>
+            </p>
+          </div>
+
+          <p style="margin:0 0 18px;font-size:16px;line-height:1.8;color:#4b5563;">
+            Our sales and technical team will review your enquiry and get in touch with you as soon as possible.
+          </p>
+
+          <p style="margin:0 0 30px;font-size:16px;line-height:1.8;color:#4b5563;">
+            We appreciate your interest in HPMC and look forward to assisting you with the right plastic extrusion machinery solution.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:35px 0;">
+
+          <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.8;">
+            This is an automated confirmation email. Please do not reply.<br>
+            <strong>Hindustan Plastics & Machine Corporation (HPMC)</strong><br>
+            Engineering Excellence Since 1972
+          </p>
+
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td align="center" style="background:#111827;padding:18px;color:#ffffff;font-size:13px;">
+          © ${new Date().getFullYear()} HPMC. All Rights Reserved.
+        </td>
+      </tr>
+
+    </table>
+  </div>
+  `,
     });
 
     /* ===== Internal Notification ===== */
     await sendEmail({
-      to: "chandangomia2812@gmail.com",
-      subject: "New Lead - HPMC",
+      to: "social_media@hindustanplastics.com",
+      subject: "🔔 New Lead Received - HPMC",
       html: `
-  <h2>New Lead Inquiry</h2>
+  <div style="margin:0;padding:40px 20px;background:#f4f7f9;font-family:Arial,Helvetica,sans-serif;">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width:700px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
 
-  <p><strong>Name:</strong> ${record.data.name}</p>
+      <!-- Header -->
+      <tr>
+        <td align="center" style="padding:30px 20px;background:#ffffff;">
+          <img
+            src="https://res.cloudinary.com/fkvbncim/image/upload/v1782899294/hpmc/images/hp-logo.png"
+            alt="HPMC"
+            width="170"
+            style="display:block;"
+          />
+        </td>
+      </tr>
 
-  <p><strong>Email:</strong> ${record.data.email}</p>
+      <tr>
+        <td style="height:5px;background:#65BC4F;"></td>
+      </tr>
 
-  <p><strong>Phone:</strong> ${record.data.phone}</p>
+      <!-- Title -->
+      <tr>
+        <td style="padding:35px 35px 15px;">
+          <h2 style="margin:0;color:#111827;font-size:28px;">
+            🔔 New Lead Received
+          </h2>
+          <p style="margin:10px 0 0;color:#6b7280;font-size:15px;">
+            A new enquiry has been submitted through the HPMC website.
+          </p>
+        </td>
+      </tr>
 
-  ${
-    record.data.customFields && Object.keys(record.data.customFields).length
-      ? `<h3>Custom Fields</h3>${Object.entries(record.data.customFields)
-          .map(
-            ([key, value]) =>
-              `<p><strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value || "-"}</p>`,
-          )
-          .join("")}`
-      : ""
-  }
+      <!-- Lead Details -->
+      <tr>
+        <td style="padding:0 35px 20px;">
+          <table width="100%" cellpadding="12" cellspacing="0" style="border-collapse:collapse;font-size:15px;">
 
-  <p>
-    <strong>Message:</strong><br/>
-    ${record.data.message || "-"}
-  </p>
-`,
+            <tr style="background:#f9fafb;">
+              <td style="font-weight:bold;width:180px;border:1px solid #e5e7eb;">Name</td>
+              <td style="border:1px solid #e5e7eb;">${record.data.name}</td>
+            </tr>
+
+            <tr>
+              <td style="font-weight:bold;border:1px solid #e5e7eb;">Email</td>
+              <td style="border:1px solid #e5e7eb;">${record.data.email}</td>
+            </tr>
+
+            <tr style="background:#f9fafb;">
+              <td style="font-weight:bold;border:1px solid #e5e7eb;">Phone</td>
+              <td style="border:1px solid #e5e7eb;">${record.data.phone}</td>
+            </tr>
+
+            <tr>
+              <td style="font-weight:bold;border:1px solid #e5e7eb;">Message</td>
+              <td style="border:1px solid #e5e7eb;">${record.data.message || "-"}</td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+
+      ${
+        record.data.customFields && Object.keys(record.data.customFields).length
+          ? `
+      <!-- Custom Fields -->
+      <tr>
+        <td style="padding:0 35px 30px;">
+          <h3 style="margin:0 0 15px;color:#111827;">
+            Additional Information
+          </h3>
+
+          <table width="100%" cellpadding="12" cellspacing="0" style="border-collapse:collapse;font-size:15px;">
+            ${Object.entries(record.data.customFields)
+              .map(
+                ([key, value], index) => `
+              <tr style="background:${index % 2 === 0 ? "#f9fafb" : "#ffffff"};">
+                <td style="font-weight:bold;width:180px;border:1px solid #e5e7eb;text-transform:capitalize;">
+                  ${key.replace(/([A-Z])/g, " $1")}
+                </td>
+                <td style="border:1px solid #e5e7eb;">
+                  ${Array.isArray(value) ? value.join(", ") : value || "-"}
+                </td>
+              </tr>
+            `,
+              )
+              .join("")}
+          </table>
+        </td>
+      </tr>
+      `
+          : ""
+      }
+
+      <!-- Footer -->
+      <tr>
+        <td style="background:#111827;padding:20px;text-align:center;color:#ffffff;font-size:13px;">
+          <strong>Hindustan Plastics & Machine Corporation (HPMC)</strong><br>
+          Website Lead Notification<br><br>
+          Received on: ${new Date().toLocaleString("en-IN", {
+            dateStyle: "medium",
+            timeStyle: "short",
+          })}
+        </td>
+      </tr>
+
+    </table>
+  </div>
+  `,
     });
 
     res.status(200).json({
@@ -510,7 +740,9 @@ exports.importLeads = async (req, res) => {
       const assignedTo =
         includeEmployeeFields && assignedValue
           ? employeeLookup.get(assignedValue.trim().toLowerCase()) ||
-            (isObjectId(assignedValue) ? employeeLookup.get(assignedValue) : null)
+            (isObjectId(assignedValue)
+              ? employeeLookup.get(assignedValue)
+              : null)
           : null;
 
       if (includeEmployeeFields && assignedValue && !assignedTo) {
@@ -524,7 +756,11 @@ exports.importLeads = async (req, res) => {
       const customFields = {};
       Object.entries(row).forEach(([key, value]) => {
         if (importReservedHeaders.has(normalizeHeader(key))) return;
-        if (value === undefined || value === null || String(value).trim() === "")
+        if (
+          value === undefined ||
+          value === null ||
+          String(value).trim() === ""
+        )
           return;
         customFields[key.trim()] = value;
       });
